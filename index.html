@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -17,7 +17,7 @@
     <section class="section-band" style="background: var(--white);">
       <div class="container">
         <div class="search-wrapper">
-          <input type="search" id="search-input" placeholder="Search phonesâ€¦" aria-label="Search phones">
+          <input type="search" id="search-input" placeholder="Search phones..." aria-label="Search phones">
         </div>
       </div>
     </section>
@@ -77,7 +77,7 @@
               <div class="illustration-placeholder" aria-hidden="true"></div>
               <div class="card-content">
                 <h2 class="card-name section-heading">${phone.name}</h2>
-                <p class="card-spec">${phone.chip || 'â€”'} â€¢ ${phone.display?.size || phone.display?.inner || 'â€”'}â€³</p>
+                <p class="card-spec">${phone.chip || '-'} | ${phone.display?.size || phone.display?.inner || '-'}in</p>
               </div>
             </a>
           </article>

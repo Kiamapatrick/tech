@@ -45,7 +45,7 @@ const PHONES = [
     chip: "A20 Pro", process: "2nm",
     display: { size: 6.9, res: "2868x1320", refresh: 120, tech: "OLED", notes: "smaller Dynamic Island" },
     battery_mah: 5391,
-    camera: { main: 48, notes: "variable aperture — first on iPhone" },
+    camera: { main: 48, notes: "variable aperture - first on iPhone" },
     storage_max_tb: 2,
     dims_mm: [163.0, 78.0, 8.8], weight_g: null, water: "IP68", // dims/weight TBD, verify
     colors: ["Burgundy", "Silver", "Cosmic Orange", "Deep Blue"],
@@ -56,7 +56,7 @@ const PHONES = [
     year: 2026, released: "2026-10-23", price: [1999, 3199], category: "foldable",
     chip: "A20 Pro",
     display: { outer: 5.4, inner: 7.6, tech: "OLED" },
-    biometrics: "Touch ID (no Face ID — TrueDepth doesn't fit hinge bezels)",
+    biometrics: "Touch ID (no Face ID - TrueDepth doesn't fit hinge bezels)",
     dims_closed_mm: [84.1, 117.8, 11.3], dims_open_mm: [164.6, 117.8, 5.2],
     weight_g: 254, water: "IP68",
     _verified: {}
@@ -81,7 +81,7 @@ const PHONES = [
   {
     id: "galaxy-z-fold8-ultra", brand: "Samsung", name: "Galaxy Z Fold 8 Ultra",
     year: 2026, category: "foldable",
-    notes: "tall/narrow shape — true successor to Fold 7's form factor",
+    notes: "tall/narrow shape - true successor to Fold 7's form factor",
     dims_closed_mm: [158.4, 72.8, 8.9], weight_g: 215,
     _verified: {}
   },

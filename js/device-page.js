@@ -5,7 +5,7 @@
   const phone = PHONES.find(p => p.id === phoneId);
   if (!phone) return;
 
-  document.title = `${phone.name} — goatedTech`;
+  document.title = `${phone.name} - goatedTech`;
   document.body.setAttribute('data-brand', phone.brand);
 
   const isFoldable = phone.category === 'foldable';
@@ -22,7 +22,7 @@
   function formatPrice(price) {
     if (price === null || price === undefined) return 'TBA';
     if (Array.isArray(price)) {
-      return '$' + price.map(p => p.toLocaleString()).join(' – ');
+      return '$' + price.map(p => p.toLocaleString()).join(' - ');
     }
     return '$' + price.toLocaleString();
   }
@@ -45,7 +45,7 @@
     if (metaEl) {
       const priceHtml = `<span>Price: ${formatPrice(phone.price)}${estMark('price')}</span>`;
       const releasedHtml = phone.released ? `<span>Released: ${formatDate(phone.released)}</span>` : '';
-      metaEl.innerHTML = priceHtml + (releasedHtml ? ' • ' + releasedHtml : '');
+      metaEl.innerHTML = priceHtml + (releasedHtml ? ' | ' + releasedHtml : '');
     }
   }
 
@@ -68,12 +68,12 @@
       let displayValue = '';
       if (isFoldable) {
         if (disp.inner && disp.outer) {
-          displayValue = `${disp.inner}″ inner / ${disp.outer}″ outer ${disp.tech}`;
+          displayValue = `${disp.inner}in inner / ${disp.outer}in outer ${disp.tech}`;
         } else if (disp.size) {
-          displayValue = `${disp.size}″ ${disp.tech}`;
+          displayValue = `${disp.size}in ${disp.tech}`;
         }
       } else if (disp.size) {
-        displayValue = `${disp.size}″ ${disp.tech}`;
+        displayValue = `${disp.size}in ${disp.tech}`;
         if (disp.refresh) displayValue += ` ${disp.refresh}Hz`;
         if (disp.res) displayValue += ` (${disp.res})`;
       }
@@ -114,7 +114,7 @@
     if (!isFoldable && phone.display) {
       const disp = phone.display;
       const rows = [];
-      if (disp.size) rows.push(['Display Size', `${disp.size}″`]);
+      if (disp.size) rows.push(['Display Size', `${disp.size}in`]);
       if (disp.tech) rows.push(['Technology', disp.tech]);
       if (disp.refresh) rows.push(['Refresh Rate', `${disp.refresh}Hz`]);
       if (disp.res) rows.push(['Resolution', disp.res]);
@@ -126,8 +126,8 @@
     if (isFoldable && phone.display) {
       const disp = phone.display;
       const rows = [];
-      if (disp.inner) rows.push(['Inner Display', `${disp.inner}″ ${disp.tech}`]);
-      if (disp.outer) rows.push(['Outer Display', `${disp.outer}″ ${disp.tech}`]);
+      if (disp.inner) rows.push(['Inner Display', `${disp.inner}in ${disp.tech}`]);
+      if (disp.outer) rows.push(['Outer Display', `${disp.outer}in ${disp.tech}`]);
       if (rows.length) sections.push({ title: 'Display', rows });
     }
 
@@ -158,15 +158,15 @@
     if (isFoldable) {
       if (phone.dims_closed_mm) {
         const [w, h, d] = phone.dims_closed_mm;
-        bodyRows.push(['Dimensions (closed)', `${w} × ${h} × ${d} mm` + estMark('dims_closed_mm')]);
+        bodyRows.push(['Dimensions (closed)', `${w} x ${h} x ${d} mm` + estMark('dims_closed_mm')]);
       }
       if (phone.dims_open_mm) {
         const [w, h, d] = phone.dims_open_mm;
-        bodyRows.push(['Dimensions (open)', `${w} × ${h} × ${d} mm` + estMark('dims_open_mm')]);
+        bodyRows.push(['Dimensions (open)', `${w} x ${h} x ${d} mm` + estMark('dims_open_mm')]);
       }
     } else if (phone.dims_mm) {
       const [w, h, d] = phone.dims_mm;
-      bodyRows.push(['Dimensions', `${w} × ${h} × ${d} mm` + estMark('dims_mm')]);
+      bodyRows.push(['Dimensions', `${w} x ${h} x ${d} mm` + estMark('dims_mm')]);
     }
     if (phone.weight_g) bodyRows.push(['Weight', `${phone.weight_g} g` + estMark('weight_g')]);
     if (phone.water) bodyRows.push(['Water Resistance', phone.water]);
