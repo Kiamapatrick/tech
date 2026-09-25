@@ -74,7 +74,9 @@
         grid.innerHTML = filtered.map(phone => `
           <article class="phone-card" role="listitem">
             <a href="phones/${phone.id}.html">
-              <div class="illustration-placeholder" aria-hidden="true"></div>
+              <div class="card-illustration" aria-hidden="true">
+                <img src="img/${phone.id}.svg" alt="" class="card-svg">
+              </div>
               <div class="card-content">
                 <h2 class="card-name section-heading">${phone.name}</h2>
                 <p class="card-spec">${phone.chip || '-'} | ${phone.display?.size || phone.display?.inner || '-'}in</p>

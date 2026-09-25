@@ -39,6 +39,7 @@
 
     const nameEl = heroSection.querySelector('.device-name');
     const metaEl = heroSection.querySelector('.device-meta');
+    const illustrationEl = heroSection.querySelector('.device-illustration');
 
     if (nameEl) nameEl.textContent = phone.name;
 
@@ -46,6 +47,10 @@
       const priceHtml = `<span>Price: ${formatPrice(phone.price)}${estMark('price')}</span>`;
       const releasedHtml = phone.released ? `<span>Released: ${formatDate(phone.released)}</span>` : '';
       metaEl.innerHTML = priceHtml + (releasedHtml ? ' | ' + releasedHtml : '');
+    }
+
+    if (illustrationEl) {
+      illustrationEl.innerHTML = `<img src="../img/${phone.id}.svg" alt="" class="device-svg" aria-hidden="true">`;
     }
   }
 
@@ -97,12 +102,23 @@
       });
     }
 
+    // Sparse page fix: if fewer than 3 stats, center them with max-width
+    const statCount = stats.length;
+    const isSparse = statCount < 3;
+    
     container.innerHTML = stats.map(s => `
-      <div class="stat">
+      <div class="stat${isSparse ? ' stat-sparse' : ''}">
         <div class="stat-value">${s.value}</div>
         <div class="stat-label">${s.label}</div>
       </div>
     `).join('');
+    
+    if (isSparse) {
+      container.style.justifyContent = 'center';
+      container.style.maxWidth = '600px';
+      container.style.marginLeft = 'auto';
+      container.style.marginRight = 'auto';
+    }
   }
 
   function renderSpecSections() {
@@ -120,7 +136,7 @@
       if (disp.res) rows.push(['Resolution', disp.res]);
       if (disp.peak_nits) rows.push(['Peak Brightness', `${disp.peak_nits.toLocaleString()} nits`]);
       if (disp.notes) rows.push(['Notes', disp.notes]);
-      if (rows.length) sections.push({ title: 'Display', rows });
+      if (rows.length) sections.push({ title: 'Display', rows, key: 'display' });
     }
 
     if (isFoldable && phone.display) {
@@ -128,14 +144,14 @@
       const rows = [];
       if (disp.inner) rows.push(['Inner Display', `${disp.inner}in ${disp.tech}`]);
       if (disp.outer) rows.push(['Outer Display', `${disp.outer}in ${disp.tech}`]);
-      if (rows.length) sections.push({ title: 'Display', rows });
+      if (rows.length) sections.push({ title: 'Display', rows, key: 'display' });
     }
 
     const perfRows = [];
     if (phone.chip) perfRows.push(['Chip', phone.chip]);
     if (phone.process) perfRows.push(['Process', phone.process]);
     if (phone.storage_max_tb) perfRows.push(['Max Storage', `${phone.storage_max_tb} TB`]);
-    if (perfRows.length) sections.push({ title: 'Performance', rows: perfRows });
+    if (perfRows.length) sections.push({ title: 'Performance', rows: perfRows, key: 'performance' });
 
     if (phone.camera) {
       const cam = phone.camera;
@@ -146,13 +162,13 @@
       if (cam.periscope_tele) camRows.push(['Periscope Telephoto', `${cam.periscope_tele} MP`]);
       if (cam.front) camRows.push(['Front Camera', `${cam.front} MP`]);
       if (cam.notes) camRows.push(['Notes', cam.notes]);
-      if (camRows.length) sections.push({ title: 'Camera', rows: camRows });
+      if (camRows.length) sections.push({ title: 'Camera', rows: camRows, key: 'camera' });
     }
 
     const batteryRows = [];
     if (phone.battery_mah) batteryRows.push(['Capacity', `${phone.battery_mah.toLocaleString()} mAh` + estMark('battery_mah')]);
     if (phone.charging_w) batteryRows.push(['Charging', `${phone.charging_w}W`]);
-    if (batteryRows.length) sections.push({ title: 'Battery', rows: batteryRows });
+    if (batteryRows.length) sections.push({ title: 'Battery', rows: batteryRows, key: 'battery' });
 
     const bodyRows = [];
     if (isFoldable) {
@@ -173,29 +189,69 @@
     if (phone.colors) bodyRows.push(['Colors', phone.colors.join(', ')]);
     if (phone.biometrics) bodyRows.push(['Biometrics', phone.biometrics]);
     if (phone.notes && !phone.camera?.notes && !phone.display?.notes) bodyRows.push(['Notes', phone.notes]);
-    if (bodyRows.length) sections.push({ title: 'Body', rows: bodyRows });
+    if (bodyRows.length) sections.push({ title: 'Body', rows: bodyRows, key: 'body' });
 
-    container.innerHTML = sections.map(section => `
-      <div class="spec-section">
-        <h2 class="spec-section-title section-heading">${section.title}</h2>
-        <table class="spec-table">
-          <tbody>
-            ${section.rows.map(([label, value]) => `
-              <tr class="spec-row">
-                <td class="spec-label">${label}</td>
-                <td class="spec-value">${value}</td>
-              </tr>
+    // Two-column layout: pair sections (Display+Performance, Camera+Battery, Body full-width)
+    const sectionPairs = [
+      ['display', 'performance'],
+      ['camera', 'battery'],
+      ['body']
+    ];
+
+    let html = '';
+    sectionPairs.forEach(pair => {
+      const pairSections = pair.map(key => sections.find(s => s.key === key)).filter(Boolean);
+      if (pairSections.length === 0) return;
+      
+      if (pairSections.length === 2) {
+        // Two-column layout
+        html += `
+          <div class="spec-pair">
+            ${pairSections.map(section => `
+              <div class="spec-section spec-col">
+                <h2 class="spec-section-title section-heading">${section.title}</h2>
+                <table class="spec-table">
+                  <tbody>
+                    ${section.rows.map(([label, value]) => `
+                      <tr class="spec-row">
+                        <td class="spec-label">${label}</td>
+                        <td class="spec-value">${value}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
             `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `).join('');
+          </div>
+        `;
+      } else {
+        // Single full-width (Body)
+        const section = pairSections[0];
+        html += `
+          <div class="spec-section spec-full">
+            <h2 class="spec-section-title section-heading">${section.title}</h2>
+            <table class="spec-table">
+              <tbody>
+                ${section.rows.map(([label, value]) => `
+                  <tr class="spec-row">
+                    <td class="spec-label">${label}</td>
+                    <td class="spec-value">${value}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    });
+
+    container.innerHTML = html;
   }
 
   function renderCompareButton() {
     const btn = document.querySelector('.compare-btn');
     if (btn) {
-      btn.href = `compare.html?ids=${phone.id}`;
+      btn.href = `../compare.html?ids=${phone.id}`;
     }
   }
 

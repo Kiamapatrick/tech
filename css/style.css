@@ -186,10 +186,20 @@ input {
   display: block;
 }
 
-.illustration-placeholder {
+.card-illustration {
   aspect-ratio: 4 / 5;
   background-color: var(--surface);
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.card-illustration img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .card-content {
@@ -214,14 +224,21 @@ input {
   aspect-ratio: 9 / 19;
   max-width: 400px;
   margin: 0 auto var(--space-section);
-  background-color: var(--surface);
-  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 body[data-brand="Samsung"] .device-illustration,
 body[data-brand="Xiaomi"] .device-illustration,
 body[data-brand="Google"] .device-illustration {
   aspect-ratio: 4 / 5;
+}
+
+.device-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .device-name {
@@ -438,4 +455,45 @@ body[data-brand="Google"] .compare-btn {
   font-style: normal;
   text-transform: lowercase;
   letter-spacing: 0.02em;
+}
+
+/* Sparse stats - center when fewer than 3 */
+.stat-sparse {
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.headline-stats:has(.stat-sparse) {
+  justify-content: center;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Two-column spec layout */
+.spec-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: var(--space-section);
+}
+
+.spec-col {
+  min-width: 0;
+}
+
+.spec-full {
+  margin-bottom: var(--space-section);
+}
+
+.spec-col .spec-table,
+.spec-full .spec-table {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .spec-pair {
+    grid-template-columns: 1fr;
+    gap: var(--space-section);
+  }
 }
