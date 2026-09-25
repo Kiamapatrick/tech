@@ -424,3 +424,18 @@ body[data-brand="Google"] .compare-btn {
     width: 40%;
   }
 }
+
+.est-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted);
+  background-color: var(--surface);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+  margin-left: 0.35rem;
+  vertical-align: baseline;
+  font-style: normal;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}

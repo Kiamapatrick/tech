@@ -9,7 +9,15 @@
   document.body.setAttribute('data-brand', phone.brand);
 
   const isFoldable = phone.category === 'foldable';
-  const isApple = phone.brand === 'Apple';
+  const verified = phone._verified || {};
+
+  function isUnverified(path) {
+    return verified[path] === false;
+  }
+
+  function estMark(path) {
+    return isUnverified(path) ? '<span class="est-badge" aria-label="Estimated or unverified"> est.</span>' : '';
+  }
 
   function formatPrice(price) {
     if (price === null || price === undefined) return 'TBA';
@@ -29,14 +37,13 @@
     const heroSection = document.querySelector('.device-hero .container');
     if (!heroSection) return;
 
-    const illustration = heroSection.querySelector('.device-illustration');
     const nameEl = heroSection.querySelector('.device-name');
     const metaEl = heroSection.querySelector('.device-meta');
 
     if (nameEl) nameEl.textContent = phone.name;
 
     if (metaEl) {
-      const priceHtml = `<span>Price: ${formatPrice(phone.price)}</span>`;
+      const priceHtml = `<span>Price: ${formatPrice(phone.price)}${estMark('price')}</span>`;
       const releasedHtml = phone.released ? `<span>Released: ${formatDate(phone.released)}</span>` : '';
       metaEl.innerHTML = priceHtml + (releasedHtml ? ' • ' + releasedHtml : '');
     }
@@ -78,7 +85,7 @@
     if (phone.battery_mah) {
       stats.push({
         label: 'Battery',
-        value: phone.battery_mah.toLocaleString() + ' mAh'
+        value: phone.battery_mah.toLocaleString() + ' mAh' + estMark('battery_mah')
       });
     }
 
@@ -96,17 +103,6 @@
         <div class="stat-label">${s.label}</div>
       </div>
     `).join('');
-  }
-
-  function buildSpecRows(group, fields) {
-    const rows = [];
-    fields.forEach(([key, label, formatter]) => {
-      const value = formatter ? formatter(phone[key]) : phone[key];
-      if (value !== null && value !== undefined && value !== '') {
-        rows.push({ label, value });
-      }
-    });
-    return rows;
   }
 
   function renderSpecSections() {
@@ -154,7 +150,7 @@
     }
 
     const batteryRows = [];
-    if (phone.battery_mah) batteryRows.push(['Capacity', `${phone.battery_mah.toLocaleString()} mAh`]);
+    if (phone.battery_mah) batteryRows.push(['Capacity', `${phone.battery_mah.toLocaleString()} mAh` + estMark('battery_mah')]);
     if (phone.charging_w) batteryRows.push(['Charging', `${phone.charging_w}W`]);
     if (batteryRows.length) sections.push({ title: 'Battery', rows: batteryRows });
 
@@ -162,17 +158,17 @@
     if (isFoldable) {
       if (phone.dims_closed_mm) {
         const [w, h, d] = phone.dims_closed_mm;
-        bodyRows.push(['Dimensions (closed)', `${w} × ${h} × ${d} mm`]);
+        bodyRows.push(['Dimensions (closed)', `${w} × ${h} × ${d} mm` + estMark('dims_closed_mm')]);
       }
       if (phone.dims_open_mm) {
         const [w, h, d] = phone.dims_open_mm;
-        bodyRows.push(['Dimensions (open)', `${w} × ${h} × ${d} mm`]);
+        bodyRows.push(['Dimensions (open)', `${w} × ${h} × ${d} mm` + estMark('dims_open_mm')]);
       }
     } else if (phone.dims_mm) {
       const [w, h, d] = phone.dims_mm;
-      bodyRows.push(['Dimensions', `${w} × ${h} × ${d} mm`]);
+      bodyRows.push(['Dimensions', `${w} × ${h} × ${d} mm` + estMark('dims_mm')]);
     }
-    if (phone.weight_g) bodyRows.push(['Weight', `${phone.weight_g} g`]);
+    if (phone.weight_g) bodyRows.push(['Weight', `${phone.weight_g} g` + estMark('weight_g')]);
     if (phone.water) bodyRows.push(['Water Resistance', phone.water]);
     if (phone.colors) bodyRows.push(['Colors', phone.colors.join(', ')]);
     if (phone.biometrics) bodyRows.push(['Biometrics', phone.biometrics]);

@@ -26,6 +26,15 @@
     `).join('');
   }
 
+  function isUnverified(phone, path) {
+    const verified = phone._verified || {};
+    return verified[path] === false;
+  }
+
+  function estMark(phone, path) {
+    return isUnverified(phone, path) ? '<span class="est-badge" aria-label="Estimated or unverified"> est.</span>' : '';
+  }
+
   function renderPickers(selectedIds) {
     const slotCount = Math.max(2, selectedIds.length);
     pickerContainer.innerHTML = '';
@@ -73,11 +82,12 @@
         }
         return '—';
 
-      case 'chip':
-        const chipParts = [];
-        if (phone.chip) chipParts.push(phone.chip);
-        if (phone.process) chipParts.push(`(${phone.process})`);
-        return chipParts.join(' ') || '—';
+      case 'performance':
+        const perfParts = [];
+        if (phone.chip) perfParts.push(phone.chip);
+        if (phone.process) perfParts.push(`(${phone.process})`);
+        if (phone.storage_max_tb) perfParts.push(`${phone.storage_max_tb} TB max storage`);
+        return perfParts.join(' • ') || '—';
 
       case 'camera':
         if (!phone.camera) return '—';
@@ -93,7 +103,7 @@
 
       case 'battery':
         const batParts = [];
-        if (phone.battery_mah) batParts.push(`${phone.battery_mah.toLocaleString()} mAh`);
+        if (phone.battery_mah) batParts.push(`${phone.battery_mah.toLocaleString()} mAh` + estMark(phone, 'battery_mah'));
         if (phone.charging_w) batParts.push(`${phone.charging_w}W charging`);
         return batParts.join(' • ') || '—';
 
@@ -102,24 +112,28 @@
         if (isFoldable) {
           if (phone.dims_closed_mm) {
             const [w, h, d] = phone.dims_closed_mm;
-            bodyParts.push(`Closed: ${w}×${h}×${d} mm`);
+            bodyParts.push(`Closed: ${w}×${h}×${d} mm` + estMark(phone, 'dims_closed_mm'));
           }
           if (phone.dims_open_mm) {
             const [w, h, d] = phone.dims_open_mm;
-            bodyParts.push(`Open: ${w}×${h}×${d} mm`);
+            bodyParts.push(`Open: ${w}×${h}×${d} mm` + estMark(phone, 'dims_open_mm'));
           }
         } else if (phone.dims_mm) {
           const [w, h, d] = phone.dims_mm;
-          bodyParts.push(`${w}×${h}×${d} mm`);
+          bodyParts.push(`${w}×${h}×${d} mm` + estMark(phone, 'dims_mm'));
         }
-        if (phone.weight_g) bodyParts.push(`${phone.weight_g} g`);
+        if (phone.weight_g) bodyParts.push(`${phone.weight_g} g` + estMark(phone, 'weight_g'));
         if (phone.water) bodyParts.push(phone.water);
         if (phone.colors) bodyParts.push(phone.colors.join(', '));
         if (phone.biometrics) bodyParts.push(phone.biometrics);
         return bodyParts.join(' • ') || '—';
 
-      case 'notes':
-        return phone.notes || '—';
+      case 'price':
+        if (phone.price === null || phone.price === undefined) return 'TBA';
+        if (Array.isArray(phone.price)) {
+          return '$' + phone.price.map(p => p.toLocaleString()).join(' – ') + estMark(phone, 'price');
+        }
+        return '$' + phone.price.toLocaleString() + estMark(phone, 'price');
 
       default:
         return '—';
@@ -136,16 +150,17 @@
 
     const specGroups = [
       { key: 'display', label: 'Display' },
-      { key: 'chip', label: 'Chip' },
+      { key: 'performance', label: 'Performance' },
       { key: 'camera', label: 'Camera' },
       { key: 'battery', label: 'Battery' },
       { key: 'body', label: 'Body' },
+      { key: 'price', label: 'Price' },
     ];
 
     let hasData = false;
     const rowsHtml = specGroups.map(group => {
       const values = phones.map(p => getDisplayValue(p, group.key));
-      const allEmpty = values.every(v => v === '—');
+      const allEmpty = values.every(v => v === '—' || v === 'TBA');
       if (allEmpty) return '';
       hasData = true;
 
