@@ -350,6 +350,163 @@
     return rows;
   }
 
+  // Size comparison rendering
+  function renderSizeComparison(selectedIds) {
+    const phones = selectedIds.map(id => PHONES.find(p => p.id === id)).filter(Boolean);
+
+    // Ensure we have a container for size comparison
+    let sizeContainer = document.getElementById('size-comparison');
+    if (!sizeContainer) {
+      sizeContainer = document.createElement('section');
+      sizeContainer.id = 'size-comparison';
+      sizeContainer.className = 'section-band';
+      sizeContainer.style.background = 'var(--white)';
+      // Insert before the spec table wrapper
+      tableWrapper.parentElement.insertBefore(sizeContainer, tableWrapper);
+    }
+
+    if (phones.length < 2) {
+      sizeContainer.innerHTML = '';
+      return;
+    }
+
+    // Get dimensions for each phone (use closed dims for foldable)
+    const phoneData = phones.map(p => {
+      let h, w, d;
+      if (p.category === 'foldable' && p.dims_closed_mm) {
+        [w, h, d] = p.dims_closed_mm;
+      } else if (p.dims_mm) {
+        [w, h, d] = p.dims_mm;
+      } else {
+        return null;
+      }
+      return { phone: p, h, w, d };
+    }).filter(Boolean);
+
+    if (phoneData.length < 2) {
+      sizeContainer.innerHTML = '';
+      return;
+    }
+
+    // Find tallest phone (max height in mm)
+    const maxHeightMm = Math.max(...phoneData.map(p => p.h));
+    const maxDisplayHeight = 360; // px
+    const scale = maxDisplayHeight / maxHeightMm;
+
+    // Generate SVG silhouettes for each phone
+    const silhouettesHtml = phoneData.map(p => {
+      const displayH = Math.round(p.h * scale);
+      const displayW = Math.round(p.w * scale);
+      const displayD = p.d; // keep depth in mm for label
+
+      // Rounded rect radius scaled
+      const rx = Math.max(4, Math.round(12 * scale));
+
+      // Camera module - simplified representation
+      let camModuleHtml = '';
+      const camCount = getCameraCount(p.phone);
+      const camSize = Math.max(6, Math.round(8 * scale));
+      const camGap = Math.max(3, Math.round(4 * scale));
+      const camY = Math.round(20 * scale);
+      const camStartX = (displayW - (camCount * camSize + (camCount - 1) * camGap)) / 2;
+
+      if (camCount === 1) {
+        camModuleHtml = `
+          <rect x="${camStartX}" y="${camY}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
+        `;
+      } else if (camCount === 2) {
+        camModuleHtml = `
+          <rect x="${camStartX}" y="${camY}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
+          <rect x="${camStartX + camSize + camGap}" y="${camY}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
+        `;
+      } else if (camCount >= 3) {
+        // Triangle arrangement for 3 lenses
+        const row1Y = camY;
+        const row2Y = camY + camSize + camGap;
+        camModuleHtml = `
+          <rect x="${camStartX + camSize + camGap}" y="${row1Y}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
+          <rect x="${camStartX}" y="${row2Y}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
+          <rect x="${camStartX + 2 * (camSize + camGap)}" y="${row2Y}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
+        `;
+      }
+
+      // Dynamic Island / notch indicator
+      const islandW = Math.max(24, Math.round(40 * scale));
+      const islandH = Math.max(4, Math.round(4 * scale));
+      const islandX = (displayW - islandW) / 2;
+      const islandY = Math.round(8 * scale);
+
+      // Depth indicator (side view hint)
+      const depthW = Math.max(2, Math.round(displayD * scale * 0.3));
+      const depthX = displayW + Math.round(4 * scale);
+
+      return `
+        <div class="size-phone" style="display: inline-block; vertical-align: bottom; margin: 0 1.5rem; text-align: center;">
+          <div class="size-silhouette" style="position: relative; display: inline-block;">
+            <!-- Drop shadow -->
+            <svg width="${displayW + depthW + 12}" height="${displayH + 20}" style="position: absolute; left: -6px; top: -6px; pointer-events: none; z-index: 0;">
+              <rect x="6" y="10" width="${displayW}" height="${displayH}" rx="${rx}" fill="#000000" opacity="0.07" filter="url(#shadow-${p.phone.id})"/>
+            </svg>
+            <!-- Phone body -->
+            <svg width="${displayW + depthW}" height="${displayH}" style="display: block; z-index: 1;">
+              <defs>
+                <filter id="shadow-${p.phone.id}" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.08"/>
+                </filter>
+                <linearGradient id="body-grad-${p.phone.id}" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#fafafa" stop-opacity="0.95"/>
+                  <stop offset="30%" stop-color="#f0f0f5" stop-opacity="0.9"/>
+                  <stop offset="70%" stop-color="#e8e8f0" stop-opacity="0.85"/>
+                  <stop offset="100%" stop-color="#d8d8e8" stop-opacity="0.8"/>
+                </linearGradient>
+                <linearGradient id="highlight-${p.phone.id}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3"/>
+                  <stop offset="50%" stop-color="#ffffff" stop-opacity="0.1"/>
+                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <!-- Phone body -->
+              <rect x="0" y="0" width="${displayW}" height="${displayH}" rx="${rx}" fill="url(#body-grad-${p.phone.id})" filter="url(#shadow-${p.phone.id})"/>
+              <!-- Top highlight -->
+              <rect x="2" y="2" width="${displayW - 4}" height="${Math.max(8, Math.round(30 * scale))}" rx="${rx - 1}" fill="url(#highlight-${p.phone.id})"/>
+              <!-- Camera module -->
+              ${camModuleHtml}
+              <!-- Dynamic Island / notch -->
+              <rect x="${islandX}" y="${islandY}" width="${islandW}" height="${islandH}" rx="${Math.max(1, Math.round(islandH / 2))}" fill="#1a1a2e" opacity="0.25"/>
+              <!-- Depth/side edge -->
+              <rect x="${depthX}" y="${Math.round(20 * scale)}" width="${depthW}" height="${displayH - Math.round(40 * scale)}" rx="1" fill="#d8d8e8" opacity="0.4"/>
+            </svg>
+          </div>
+          <div class="size-label" style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--muted); line-height: 1.4;">
+            <div style="font-weight: 600; color: var(--ink);">${p.phone.name}</div>
+            <div>${p.h} × ${p.w} × ${p.d} mm</div>
+            ${p.phone.category === 'foldable' ? '<div style="font-size: 0.7rem; opacity: 0.7;">(shown closed)</div>' : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    sizeContainer.innerHTML = `
+      <div class="container" style="text-align: center;">
+        <h2 class="section-heading" style="margin-bottom: 2rem;">Size Comparison</h2>
+        <div class="size-comparison-row" style="display: flex; align-items: flex-end; justify-content: center; min-height: ${maxDisplayHeight + 80}px; padding: 1rem 0;">
+          ${silhouettesHtml}
+        </div>
+        <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">All phones shown at relative scale. Tallest phone = 360px.</p>
+      </div>
+    `;
+  }
+
+  function getCameraCount(phone) {
+    if (!phone.camera) return 0;
+    let count = 0;
+    if (phone.camera.main) count++;
+    if (phone.camera.ultrawide) count++;
+    if (phone.camera.tele) count++;
+    if (phone.camera.periscope_tele) count++;
+    return count;
+  }
+
   function renderPickers(selectedIds) {
     const slotCount = Math.max(2, selectedIds.length);
     pickerContainer.innerHTML = '';
@@ -366,6 +523,7 @@
           .filter(v => v);
         updateUrl(newIds);
         renderTable(newIds);
+        renderSizeComparison(newIds);
       });
       slot.appendChild(select);
       pickerContainer.appendChild(slot);
@@ -436,6 +594,7 @@
     const selectedIds = getSelectedIds();
     renderPickers(selectedIds);
     renderTable(selectedIds);
+    renderSizeComparison(selectedIds);
   }
 
   if (document.readyState === 'loading') {

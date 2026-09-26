@@ -1,1 +1,51 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500" aria-hidden="true"><rect x="65" y="45" width="300" height="440" rx="20" fill="none" stroke="#6d2331" stroke-width="2" opacity="0.3"/><rect x="50" y="30" width="300" height="440" rx="20" fill="none" stroke="#6d2331" stroke-width="2"/><line x1="200.0" y1="30" x2="200.0" y2="470" stroke="#6d2331" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500" aria-hidden="true">
+  <defs>
+    <linearGradient id="phoneBodyGrad_iphone-duo" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fafafa" stop-opacity="0.95"/>
+      <stop offset="30%" stop-color="#f0f0f5" stop-opacity="0.9"/>
+      <stop offset="70%" stop-color="#e8e8f0" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#d8d8e8" stop-opacity="0.8"/>
+    </linearGradient>
+    <radialGradient id="lensGrad_iphone-duo" cx="35%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#2a2a4a" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#1a1a3a" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0a0a1a" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="phoneShadow_iphone-duo" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="phoneBodyGrad_iphone-duo_highlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shadows -->
+  <rect x="54" y="42" width="132" height="428" rx="38" fill="#000000" opacity="0.06" filter="url(#phoneShadow_iphone-duo)"/>
+  <rect x="214" y="42" width="132" height="428" rx="38" fill="#000000" opacity="0.06" filter="url(#phoneShadow_iphone-duo)"/>
+
+  <!-- Left panel (outer display) -->
+  <rect x="50" y="30" width="140" height="440" rx="40" fill="url(#phoneBodyGrad_iphone-duo)" filter="url(#phoneShadow_iphone-duo)"/>
+  <rect x="54" y="34" width="132" height="60" rx="38" fill="url(#phoneBodyGrad_iphone-duo_highlight)"/>
+
+  <!-- Right panel (inner display, folded behind) -->
+  <rect x="210" y="30" width="140" height="440" rx="40" fill="url(#phoneBodyGrad_iphone-duo)" filter="url(#phoneShadow_iphone-duo)"/>
+  <rect x="214" y="34" width="132" height="60" rx="38" fill="url(#phoneBodyGrad_iphone-duo_highlight)"/>
+
+  <!-- Hinge indicator -->
+  <rect x="190" y="210" width="20" height="80" rx="4" fill="#d8d8e8" opacity="0.5"/>
+
+  <!-- Outer display camera -->
+  <circle cx="90" cy="100" r="16" fill="url(#lensGrad_iphone-duo)" filter="url(#phoneShadow_iphone-duo)"/>
+  <circle cx="90" cy="100" r="9" fill="none" stroke="#1a1a2e" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="90" cy="100" r="4" fill="#0a0a1a" opacity="0.6"/>
+
+  <!-- Inner display camera (when open) -->
+  <circle cx="310" cy="140" r="16" fill="url(#lensGrad_iphone-duo)" filter="url(#phoneShadow_iphone-duo)"/>
+  <circle cx="310" cy="140" r="9" fill="none" stroke="#1a1a2e" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="310" cy="140" r="4" fill="#0a0a1a" opacity="0.6"/>
+
+  <!-- Dynamic Island on outer -->
+  <rect x="100" y="56" width="40" height="8" rx="4" fill="#1a1a2e" opacity="0.25"/>
+</svg>
