@@ -1,5 +1,35 @@
 const PHONES = [
   {
+    id: "iphone-14", brand: "Apple", name: "iPhone 14", type: "iphone",
+    year: 2022, released: "2022-09-16", price: 799, category: "standard",
+    chip: "A15 Bionic", process: "5nm",
+    display: { size: 6.1, refresh: 60, tech: "OLED" },
+    battery_mah: 3279,
+    camera: { main: 12, ultrawide: 12, front: 12 },
+    dims_mm: [146.7, 71.5, 7.8], weight_g: 172, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-14-plus", brand: "Apple", name: "iPhone 14 Plus", type: "iphone",
+    year: 2022, released: "2022-10-07", price: 899, category: "standard",
+    chip: "A15 Bionic", process: "5nm",
+    display: { size: 6.7, refresh: 60, tech: "OLED" },
+    battery_mah: 4325,
+    camera: { main: 12, ultrawide: 12, front: 12 },
+    dims_mm: [160.8, 78.1, 7.8], weight_g: 203, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-14-pro", brand: "Apple", name: "iPhone 14 Pro", type: "iphone",
+    year: 2022, released: "2022-09-16", price: 999, category: "flagship",
+    chip: "A16 Bionic", process: "4nm",
+    display: { size: 6.1, refresh: 120, tech: "OLED", notes: "Dynamic Island debuts" },
+    battery_mah: 3200,
+    camera: { main: 48, ultrawide: 12, tele: 12, tele_zoom: "3x", front: 12 },
+    dims_mm: [147.5, 71.5, 7.9], weight_g: 206, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
     id: "iphone-14-pro-max", brand: "Apple", name: "iPhone 14 Pro Max", type: "iphone",
     year: 2022, released: "2022-09-16", price: 1099, category: "flagship",
     chip: "A16 Bionic", process: "4nm",
