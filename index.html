@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>goatedTech</title>
+  <title>goatedTech — iPhone Spec Reference</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -17,19 +17,13 @@
     <section class="section-band" style="background: var(--white);">
       <div class="container">
         <div class="search-wrapper">
-          <input type="search" id="search-input" placeholder="Search phones..." aria-label="Search phones">
+          <input type="search" id="search-input" placeholder="Search iPhones..." aria-label="Search iPhones">
         </div>
       </div>
     </section>
 
     <section class="section-band" style="background: var(--surface);">
       <div class="container">
-        <div class="filter-chips" role="group" aria-label="Filter by brand">
-          <button class="chip" data-filter="brand" data-value="Apple">Apple</button>
-          <button class="chip" data-filter="brand" data-value="Samsung">Samsung</button>
-          <button class="chip" data-filter="brand" data-value="Xiaomi">Xiaomi</button>
-          <button class="chip" data-filter="brand" data-value="Google">Google</button>
-        </div>
         <div class="filter-chips" role="group" aria-label="Filter by category">
           <button class="chip" data-filter="category" data-value="flagship">Flagship</button>
           <button class="chip" data-filter="category" data-value="foldable">Foldable</button>
@@ -58,17 +52,15 @@
       const searchInput = document.getElementById('search-input');
       const chips = document.querySelectorAll('.chip');
 
-      let activeFilters = { brand: new Set(), category: new Set(), year: new Set() };
+      let activeFilters = { category: new Set(), year: new Set() };
       let searchQuery = '';
 
       function render() {
         const filtered = PHONES.filter(phone => {
-          const matchesSearch = phone.name.toLowerCase().includes(searchQuery) ||
-                                phone.brand.toLowerCase().includes(searchQuery);
-          const matchesBrand = activeFilters.brand.size === 0 || activeFilters.brand.has(phone.brand);
+          const matchesSearch = phone.name.toLowerCase().includes(searchQuery);
           const matchesCategory = activeFilters.category.size === 0 || activeFilters.category.has(phone.category);
           const matchesYear = activeFilters.year.size === 0 || activeFilters.year.has(String(phone.year));
-          return matchesSearch && matchesBrand && matchesCategory && matchesYear;
+          return matchesSearch && matchesCategory && matchesYear;
         });
 
         grid.innerHTML = filtered.map(phone => `
