@@ -1,5 +1,345 @@
 const PHONES = [
   {
+    id: "iphone", brand: "Apple", name: "iPhone", type: "iphone",
+    year: 2007, released: "2007-06-29", price: 499, category: "flagship",
+    chip: "Samsung S5L8900", process: "90nm",
+    display: { size: 3.5, refresh: 60, tech: "LCD" },
+    battery_mah: 1400,
+    camera: { main: 2, front: null },
+    dims_mm: [115, 61, 11.6], weight_g: 135, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-3g", brand: "Apple", name: "iPhone 3G", type: "iphone",
+    year: 2008, released: "2008-07-11", price: 199, category: "flagship",
+    chip: "Samsung S5L8900", process: "90nm",
+    display: { size: 3.5, refresh: 60, tech: "LCD" },
+    battery_mah: 1150,
+    camera: { main: 2, front: null },
+    dims_mm: [115.5, 62.1, 12.3], weight_g: 133, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-3gs", brand: "Apple", name: "iPhone 3GS", type: "iphone",
+    year: 2009, released: "2009-06-19", price: 199, category: "flagship",
+    chip: "Samsung S5PC100", process: "65nm",
+    display: { size: 3.5, refresh: 60, tech: "LCD" },
+    battery_mah: 1219,
+    camera: { main: 3, front: null },
+    dims_mm: [115.5, 62.1, 12.3], weight_g: 135, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-4", brand: "Apple", name: "iPhone 4", type: "iphone",
+    year: 2010, released: "2010-06-24", price: 199, category: "flagship",
+    chip: "Apple A4", process: "45nm",
+    display: { size: 3.5, refresh: 60, tech: "LCD" },
+    battery_mah: 1420,
+    camera: { main: 5, front: 0.3 },
+    dims_mm: [115.2, 58.6, 9.3], weight_g: 137, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-4s", brand: "Apple", name: "iPhone 4S", type: "iphone",
+    year: 2011, released: "2011-10-14", price: 199, category: "flagship",
+    chip: "Apple A5", process: "45nm",
+    display: { size: 3.5, refresh: 60, tech: "LCD" },
+    battery_mah: 1432,
+    camera: { main: 8, front: 0.3 },
+    dims_mm: [115.2, 58.6, 9.3], weight_g: 140, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-5", brand: "Apple", name: "iPhone 5", type: "iphone",
+    year: 2012, released: "2012-09-21", price: 199, category: "flagship",
+    chip: "Apple A6", process: "32nm",
+    display: { size: 4.0, refresh: 60, tech: "LCD" },
+    battery_mah: 1440,
+    camera: { main: 8, front: 1.2 },
+    dims_mm: [123.8, 58.6, 7.6], weight_g: 112, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-5c", brand: "Apple", name: "iPhone 5C", type: "iphone",
+    year: 2013, released: "2013-09-20", price: 99, category: "budget",
+    chip: "Apple A6", process: "32nm",
+    display: { size: 4.0, refresh: 60, tech: "LCD" },
+    battery_mah: 1510,
+    camera: { main: 8, front: 1.2 },
+    dims_mm: [124.4, 59.2, 8.97], weight_g: 132, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-5s", brand: "Apple", name: "iPhone 5S", type: "iphone",
+    year: 2013, released: "2013-09-20", price: 199, category: "flagship",
+    chip: "Apple A7", process: "28nm",
+    display: { size: 4.0, refresh: 60, tech: "LCD" },
+    battery_mah: 1560,
+    camera: { main: 8, front: 1.2 },
+    dims_mm: [123.8, 58.6, 7.6], weight_g: 112, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-6", brand: "Apple", name: "iPhone 6", type: "iphone",
+    year: 2014, released: "2014-09-19", price: 199, category: "standard",
+    chip: "Apple A8", process: "20nm",
+    display: { size: 4.7, refresh: 60, tech: "LCD" },
+    battery_mah: 1810,
+    camera: { main: 8, front: 1.2 },
+    dims_mm: [138.1, 67, 6.9], weight_g: 129, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-6-plus", brand: "Apple", name: "iPhone 6 Plus", type: "iphone",
+    year: 2014, released: "2014-09-19", price: 299, category: "standard",
+    chip: "Apple A8", process: "20nm",
+    display: { size: 5.5, refresh: 60, tech: "LCD" },
+    battery_mah: 2915,
+    camera: { main: 8, front: 1.2 },
+    dims_mm: [158.1, 77.8, 7.1], weight_g: 172, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-6s", brand: "Apple", name: "iPhone 6S", type: "iphone",
+    year: 2015, released: "2015-09-25", price: 199, category: "standard",
+    chip: "Apple A9", process: "14nm",
+    display: { size: 4.7, refresh: 60, tech: "LCD" },
+    battery_mah: 1715,
+    camera: { main: 12, front: 5 },
+    dims_mm: [138.3, 67.1, 7.1], weight_g: 143, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-6s-plus", brand: "Apple", name: "iPhone 6S Plus", type: "iphone",
+    year: 2015, released: "2015-09-25", price: 299, category: "standard",
+    chip: "Apple A9", process: "14nm",
+    display: { size: 5.5, refresh: 60, tech: "LCD" },
+    battery_mah: 2750,
+    camera: { main: 12, front: 5 },
+    dims_mm: [158.2, 77.9, 7.3], weight_g: 192, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-se-1", brand: "Apple", name: "iPhone SE (1st generation)", type: "iphone",
+    year: 2016, released: "2016-03-31", price: 399, category: "budget",
+    chip: "Apple A9", process: "14nm",
+    display: { size: 4.0, refresh: 60, tech: "LCD" },
+    battery_mah: 1624,
+    camera: { main: 12, front: 1.2 },
+    dims_mm: [123.8, 58.6, 7.6], weight_g: 113, water: "none",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-7", brand: "Apple", name: "iPhone 7", type: "iphone",
+    year: 2016, released: "2016-09-16", price: 649, category: "standard",
+    chip: "Apple A10 Fusion", process: "16nm",
+    display: { size: 4.7, refresh: 60, tech: "LCD" },
+    battery_mah: 1960,
+    camera: { main: 12, front: 7 },
+    dims_mm: [138.3, 67.1, 7.1], weight_g: 138, water: "IP67",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-7-plus", brand: "Apple", name: "iPhone 7 Plus", type: "iphone",
+    year: 2016, released: "2016-09-16", price: 769, category: "flagship",
+    chip: "Apple A10 Fusion", process: "16nm",
+    display: { size: 5.5, refresh: 60, tech: "LCD" },
+    battery_mah: 2900,
+    camera: { main: 12, tele: 12, tele_zoom: "2x", front: 7 },
+    dims_mm: [158.2, 77.9, 7.3], weight_g: 188, water: "IP67",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-8", brand: "Apple", name: "iPhone 8", type: "iphone",
+    year: 2017, released: "2017-09-22", price: 699, category: "standard",
+    chip: "Apple A11 Bionic", process: "10nm",
+    display: { size: 4.7, refresh: 60, tech: "LCD" },
+    battery_mah: 1821,
+    camera: { main: 12, front: 7 },
+    dims_mm: [138.4, 67.3, 7.3], weight_g: 148, water: "IP67",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-8-plus", brand: "Apple", name: "iPhone 8 Plus", type: "iphone",
+    year: 2017, released: "2017-09-22", price: 799, category: "flagship",
+    chip: "Apple A11 Bionic", process: "10nm",
+    display: { size: 5.5, refresh: 60, tech: "LCD" },
+    battery_mah: 2675,
+    camera: { main: 12, tele: 12, tele_zoom: "2x", front: 7 },
+    dims_mm: [158.4, 78.1, 7.5], weight_g: 202, water: "IP67",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-x", brand: "Apple", name: "iPhone X", type: "iphone",
+    year: 2017, released: "2017-11-03", price: 999, category: "flagship",
+    chip: "Apple A11 Bionic", process: "10nm",
+    display: { size: 5.8, refresh: 60, tech: "OLED" },
+    battery_mah: 2716,
+    camera: { main: 12, tele: 12, tele_zoom: "2x", front: 7 },
+    dims_mm: [143.6, 70.9, 7.7], weight_g: 174, water: "IP67",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-xs", brand: "Apple", name: "iPhone XS", type: "iphone",
+    year: 2018, released: "2018-09-21", price: 999, category: "flagship",
+    chip: "Apple A12 Bionic", process: "7nm",
+    display: { size: 5.8, refresh: 60, tech: "OLED" },
+    battery_mah: 2658,
+    camera: { main: 12, tele: 12, tele_zoom: "2x", front: 7 },
+    dims_mm: [143.6, 70.9, 7.7], weight_g: 177, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-xs-max", brand: "Apple", name: "iPhone XS Max", type: "iphone",
+    year: 2018, released: "2018-09-21", price: 1099, category: "flagship",
+    chip: "Apple A12 Bionic", process: "7nm",
+    display: { size: 6.5, refresh: 60, tech: "OLED" },
+    battery_mah: 3174,
+    camera: { main: 12, tele: 12, tele_zoom: "2x", front: 7 },
+    dims_mm: [157.5, 77.4, 7.7], weight_g: 208, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-xr", brand: "Apple", name: "iPhone XR", type: "iphone",
+    year: 2018, released: "2018-10-26", price: 749, category: "standard",
+    chip: "Apple A12 Bionic", process: "7nm",
+    display: { size: 6.1, refresh: 60, tech: "LCD" },
+    battery_mah: 2942,
+    camera: { main: 12, front: 7 },
+    dims_mm: [150.9, 75.7, 8.3], weight_g: 194, water: "IP67",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-11", brand: "Apple", name: "iPhone 11", type: "iphone",
+    year: 2019, released: "2019-09-20", price: 699, category: "standard",
+    chip: "Apple A13 Bionic", process: "7nm",
+    display: { size: 6.1, refresh: 60, tech: "LCD" },
+    battery_mah: 3110,
+    camera: { main: 12, ultrawide: 12, front: 12 },
+    dims_mm: [150.9, 75.7, 8.3], weight_g: 194, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-11-pro", brand: "Apple", name: "iPhone 11 Pro", type: "iphone",
+    year: 2019, released: "2019-09-20", price: 999, category: "flagship",
+    chip: "Apple A13 Bionic", process: "7nm",
+    display: { size: 5.8, refresh: 60, tech: "OLED" },
+    battery_mah: 3046,
+    camera: { main: 12, ultrawide: 12, tele: 12, tele_zoom: "2x", front: 12 },
+    dims_mm: [144, 71.4, 8.1], weight_g: 188, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-11-pro-max", brand: "Apple", name: "iPhone 11 Pro Max", type: "iphone",
+    year: 2019, released: "2019-09-20", price: 1099, category: "flagship",
+    chip: "Apple A13 Bionic", process: "7nm",
+    display: { size: 6.5, refresh: 60, tech: "OLED" },
+    battery_mah: 3969,
+    camera: { main: 12, ultrawide: 12, tele: 12, tele_zoom: "2x", front: 12 },
+    dims_mm: [158, 77.8, 8.1], weight_g: 226, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-se-2", brand: "Apple", name: "iPhone SE (2nd generation)", type: "iphone",
+    year: 2020, released: "2020-04-24", price: 399, category: "budget",
+    chip: "Apple A13 Bionic", process: "7nm",
+    display: { size: 4.7, refresh: 60, tech: "LCD" },
+    battery_mah: 1821,
+    camera: { main: 12, front: 7 },
+    dims_mm: [138.4, 67.3, 7.3], weight_g: 148, water: "IP67",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-12-mini", brand: "Apple", name: "iPhone 12 mini", type: "iphone",
+    year: 2020, released: "2020-11-13", price: 699, category: "mini",
+    chip: "Apple A14 Bionic", process: "5nm",
+    display: { size: 5.4, refresh: 60, tech: "OLED" },
+    battery_mah: 2227,
+    camera: { main: 12, ultrawide: 12, front: 12 },
+    dims_mm: [131.5, 64.2, 7.4], weight_g: 135, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-12", brand: "Apple", name: "iPhone 12", type: "iphone",
+    year: 2020, released: "2020-10-23", price: 799, category: "standard",
+    chip: "Apple A14 Bionic", process: "5nm",
+    display: { size: 6.1, refresh: 60, tech: "OLED" },
+    battery_mah: 2815,
+    camera: { main: 12, ultrawide: 12, front: 12 },
+    dims_mm: [146.7, 71.5, 7.4], weight_g: 164, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-12-pro", brand: "Apple", name: "iPhone 12 Pro", type: "iphone",
+    year: 2020, released: "2020-10-23", price: 999, category: "flagship",
+    chip: "Apple A14 Bionic", process: "5nm",
+    display: { size: 6.1, refresh: 60, tech: "OLED" },
+    battery_mah: 2815,
+    camera: { main: 12, ultrawide: 12, tele: 12, tele_zoom: "2x", front: 12 },
+    dims_mm: [146.7, 71.5, 7.4], weight_g: 189, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-12-pro-max", brand: "Apple", name: "iPhone 12 Pro Max", type: "iphone",
+    year: 2020, released: "2020-11-13", price: 1099, category: "flagship",
+    chip: "Apple A14 Bionic", process: "5nm",
+    display: { size: 6.7, refresh: 60, tech: "OLED" },
+    battery_mah: 3687,
+    camera: { main: 12, ultrawide: 12, tele: 12, tele_zoom: "2.5x", front: 12 },
+    dims_mm: [160.8, 78.1, 7.4], weight_g: 228, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-13-mini", brand: "Apple", name: "iPhone 13 mini", type: "iphone",
+    year: 2021, released: "2021-09-24", price: 699, category: "mini",
+    chip: "Apple A15 Bionic", process: "5nm",
+    display: { size: 5.4, refresh: 60, tech: "OLED" },
+    battery_mah: 2438,
+    camera: { main: 12, ultrawide: 12, front: 12 },
+    dims_mm: [131.5, 64.2, 7.65], weight_g: 141, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-13", brand: "Apple", name: "iPhone 13", type: "iphone",
+    year: 2021, released: "2021-09-24", price: 799, category: "standard",
+    chip: "Apple A15 Bionic", process: "5nm",
+    display: { size: 6.1, refresh: 60, tech: "OLED" },
+    battery_mah: 3240,
+    camera: { main: 12, ultrawide: 12, front: 12 },
+    dims_mm: [146.7, 71.5, 7.65], weight_g: 174, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-13-pro", brand: "Apple", name: "iPhone 13 Pro", type: "iphone",
+    year: 2021, released: "2021-09-24", price: 999, category: "flagship",
+    chip: "Apple A15 Bionic", process: "5nm",
+    display: { size: 6.1, refresh: 120, tech: "OLED", notes: "ProMotion 120Hz debuts" },
+    battery_mah: 3095,
+    camera: { main: 12, ultrawide: 12, tele: 12, tele_zoom: "3x", front: 12 },
+    dims_mm: [146.7, 71.5, 7.65], weight_g: 204, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-13-pro-max", brand: "Apple", name: "iPhone 13 Pro Max", type: "iphone",
+    year: 2021, released: "2021-09-24", price: 1099, category: "flagship",
+    chip: "Apple A15 Bionic", process: "5nm",
+    display: { size: 6.7, refresh: 120, tech: "OLED", notes: "ProMotion 120Hz debuts" },
+    battery_mah: 4352,
+    camera: { main: 12, ultrawide: 12, tele: 12, tele_zoom: "3x", front: 12 },
+    dims_mm: [160.8, 78.1, 7.65], weight_g: 240, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-se-3", brand: "Apple", name: "iPhone SE (3rd generation)", type: "iphone",
+    year: 2022, released: "2022-03-18", price: 429, category: "budget",
+    chip: "Apple A15 Bionic", process: "5nm",
+    display: { size: 4.7, refresh: 60, tech: "LCD" },
+    battery_mah: 2018,
+    camera: { main: 12, front: 7 },
+    dims_mm: [138.4, 67.3, 7.3], weight_g: 144, water: "IP67",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
     id: "iphone-14", brand: "Apple", name: "iPhone 14", type: "iphone",
     year: 2022, released: "2022-09-16", price: 799, category: "standard",
     chip: "A15 Bionic", process: "5nm",
@@ -40,6 +380,36 @@ const PHONES = [
     _verified: {}
   },
   {
+    id: "iphone-15", brand: "Apple", name: "iPhone 15", type: "iphone",
+    year: 2023, released: "2023-09-22", price: 799, category: "standard",
+    chip: "A16 Bionic", process: "4nm",
+    display: { size: 6.1, refresh: 60, tech: "OLED", notes: "Dynamic Island" },
+    battery_mah: 3349,
+    camera: { main: 48, ultrawide: 12, front: 12 },
+    dims_mm: [147.6, 71.6, 7.8], weight_g: 171, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-15-plus", brand: "Apple", name: "iPhone 15 Plus", type: "iphone",
+    year: 2023, released: "2023-09-22", price: 899, category: "standard",
+    chip: "A16 Bionic", process: "4nm",
+    display: { size: 6.7, refresh: 60, tech: "OLED", notes: "Dynamic Island" },
+    battery_mah: 4383,
+    camera: { main: 48, ultrawide: 12, front: 12 },
+    dims_mm: [160.9, 77.8, 7.8], weight_g: 201, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-15-pro", brand: "Apple", name: "iPhone 15 Pro", type: "iphone",
+    year: 2023, released: "2023-09-22", price: 999, category: "flagship",
+    chip: "A17 Pro", process: "3nm",
+    display: { size: 6.1, refresh: 120, tech: "OLED", notes: "titanium frame; USB-C" },
+    battery_mah: 3274,
+    camera: { main: 48, ultrawide: 12, tele: 12, tele_zoom: "3x", front: 12 },
+    dims_mm: [146.6, 70.6, 8.25], weight_g: 187, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
     id: "iphone-15-pro-max", brand: "Apple", name: "iPhone 15 Pro Max", type: "iphone",
     year: 2023, released: "2023-09-22", price: 1199, category: "flagship",
     chip: "A17 Pro", process: "3nm",
@@ -48,6 +418,36 @@ const PHONES = [
     camera: { main: 48, ultrawide: 12, tele: 12, tele_zoom: "5x tetraprism", front: 12 },
     dims_mm: [159.9, 76.7, 8.25], weight_g: 221, water: "IP68",
     _verified: {}
+  },
+  {
+    id: "iphone-16", brand: "Apple", name: "iPhone 16", type: "iphone",
+    year: 2024, released: "2024-09-20", price: 799, category: "standard",
+    chip: "A18", process: "3nm",
+    display: { size: 6.1, refresh: 60, tech: "OLED", notes: "Camera Control button" },
+    battery_mah: 3561,
+    camera: { main: 48, ultrawide: 12, front: 12 },
+    dims_mm: [147.6, 71.6, 7.8], weight_g: 170, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-16-plus", brand: "Apple", name: "iPhone 16 Plus", type: "iphone",
+    year: 2024, released: "2024-09-20", price: 899, category: "standard",
+    chip: "A18", process: "3nm",
+    display: { size: 6.7, refresh: 60, tech: "OLED", notes: "Camera Control button" },
+    battery_mah: 4674,
+    camera: { main: 48, ultrawide: 12, front: 12 },
+    dims_mm: [160.9, 77.8, 7.8], weight_g: 199, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-16-pro", brand: "Apple", name: "iPhone 16 Pro", type: "iphone",
+    year: 2024, released: "2024-09-20", price: 999, category: "flagship",
+    chip: "A18 Pro", process: "3nm",
+    display: { size: 6.3, refresh: 120, tech: "OLED", notes: "Camera Control button" },
+    battery_mah: 3582,
+    camera: { main: 48, ultrawide: 48, tele: 12, tele_zoom: "5x", front: 12 },
+    dims_mm: [149.6, 71.5, 8.25], weight_g: 199, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
   },
   {
     id: "iphone-16-pro-max", brand: "Apple", name: "iPhone 16 Pro Max", type: "iphone",
@@ -60,6 +460,46 @@ const PHONES = [
     _verified: { dims_mm: true, weight_g: true }
   },
   {
+    id: "iphone-16e", brand: "Apple", name: "iPhone 16e", type: "iphone",
+    year: 2025, released: "2025-02-28", price: 599, category: "budget",
+    chip: "A18", process: "3nm",
+    display: { size: 6.1, refresh: 60, tech: "OLED" },
+    battery_mah: 3961,
+    camera: { main: 48, front: 12 },
+    dims_mm: [146.7, 71.5, 7.8], weight_g: 167, water: "IP68",
+    _verified: { dims_mm: true, weight_g: true, battery_mah: true }
+  },
+  {
+    id: "iphone-17", brand: "Apple", name: "iPhone 17", type: "iphone",
+    year: 2025, released: "2025-09-19", price: 799, category: "standard",
+    chip: "A19", process: "3nm",
+    display: { size: 6.1, refresh: 120, tech: "OLED" },
+    battery_mah: null, // TBD, not yet confirmed
+    camera: { main: 48, ultrawide: 48, front: 24 },
+    dims_mm: [147.0, 71.0, 7.8], weight_g: null, water: "IP68",
+    _verified: {}
+  },
+  {
+    id: "iphone-17-air", brand: "Apple", name: "iPhone 17 Air", type: "iphone",
+    year: 2025, released: "2025-09-19", price: 899, category: "standard",
+    chip: "A19", process: "3nm",
+    display: { size: 6.6, refresh: 120, tech: "OLED" },
+    battery_mah: null, // TBD, not yet confirmed
+    camera: { main: 48, front: 24 },
+    dims_mm: [155.0, 73.0, 5.5], weight_g: null, water: "IP68",
+    _verified: {}
+  },
+  {
+    id: "iphone-17-pro", brand: "Apple", name: "iPhone 17 Pro", type: "iphone",
+    year: 2025, released: "2025-09-19", price: 999, category: "flagship",
+    chip: "A19 Pro", process: "3nm",
+    display: { size: 6.3, refresh: 120, tech: "OLED" },
+    battery_mah: null, // TBD, not yet confirmed
+    camera: { main: 48, ultrawide: 48, tele: 48, tele_zoom: "5x", front: 24 },
+    dims_mm: [149.0, 71.0, 8.3], weight_g: null, water: "IP68",
+    _verified: {}
+  },
+  {
     id: "iphone-17-pro-max", brand: "Apple", name: "iPhone 17 Pro Max", type: "iphone",
     year: 2025, released: "2025-09-19", price: 1199, category: "flagship",
     chip: "A19 Pro", process: "3nm",
@@ -68,6 +508,26 @@ const PHONES = [
     camera: { main: 48, ultrawide: 48, tele: 48, front: 18 },
     dims_mm: [162.6, 76.2, 8.64], weight_g: 233, water: "IP68",
     _verified: { battery_mah: true }
+  },
+  {
+    id: "iphone-18", brand: "Apple", name: "iPhone 18", type: "iphone",
+    year: 2026, released: "2026-09-18", price: 799, category: "standard",
+    chip: "A20", process: "2nm",
+    display: { size: 6.1, refresh: 120, tech: "OLED" },
+    battery_mah: null, // TBD, not yet confirmed
+    camera: { main: 48, ultrawide: 48, front: 24 },
+    dims_mm: [147.0, 71.0, 7.8], weight_g: null, water: "IP68",
+    _verified: {}
+  },
+  {
+    id: "iphone-18-pro", brand: "Apple", name: "iPhone 18 Pro", type: "iphone",
+    year: 2026, released: "2026-09-18", price: 999, category: "flagship",
+    chip: "A20 Pro", process: "2nm",
+    display: { size: 6.3, refresh: 120, tech: "OLED" },
+    battery_mah: null, // TBD, not yet confirmed
+    camera: { main: 48, ultrawide: 48, tele: 48, tele_zoom: "5x", front: 24 },
+    dims_mm: [149.0, 71.0, 8.3], weight_g: null, water: "IP68",
+    _verified: {}
   },
   {
     id: "iphone-18-pro-max", brand: "Apple", name: "iPhone 18 Pro Max", type: "iphone",
