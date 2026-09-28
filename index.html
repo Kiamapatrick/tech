@@ -204,34 +204,61 @@
         });
       }
 
-      function getSortValue(phone, field) {
-        switch (field) {
-          case 'newest': return phone.released ? new Date(phone.released).getTime() : 0;
-          case 'oldest': return phone.released ? -new Date(phone.released).getTime() : 0;
-          case 'price-asc': return phone.price === null ? Infinity : (Array.isArray(phone.price) ? phone.price[0] : phone.price);
-          case 'price-desc': return phone.price === null ? -Infinity : -(Array.isArray(phone.price) ? phone.price[0] : phone.price);
-          case 'screen-asc':
-            if (phone.display?.size) return phone.display.size;
-            if (phone.display?.inner) return phone.display.inner;
-            return -Infinity;
-          case 'screen-desc':
-            if (phone.display?.size) return -phone.display.size;
-            if (phone.display?.inner) return -phone.display.inner;
-            return Infinity;
-          case 'battery-asc': return phone.battery_mah === null ? Infinity : phone.battery_mah;
-          case 'battery-desc': return phone.battery_mah === null ? -Infinity : -phone.battery_mah;
-          case 'weight-asc': return phone.weight_g === null ? Infinity : phone.weight_g;
-          case 'weight-desc': return phone.weight_g === null ? -Infinity : -phone.weight_g;
-          default: return 0;
-        }
+      function getSortSpec(field) {
+        const specs = {
+          'newest': { getValue: p => p.released ? new Date(p.released).getTime() : null, dir: 'desc' },
+          'oldest': { getValue: p => p.released ? new Date(p.released).getTime() : null, dir: 'asc' },
+          'price-asc': { getValue: p => p.price === null ? null : (Array.isArray(p.price) ? p.price[0] : p.price), dir: 'asc' },
+          'price-desc': { getValue: p => p.price === null ? null : (Array.isArray(p.price) ? p.price[0] : p.price), dir: 'desc' },
+          'screen-asc': {
+            getValue: p => {
+              if (p.display?.size) return p.display.size;
+              if (p.display?.inner) return p.display.inner;
+              return null;
+            },
+            dir: 'asc'
+          },
+          'screen-desc': {
+            getValue: p => {
+              if (p.display?.size) return p.display.size;
+              if (p.display?.inner) return p.display.inner;
+              return null;
+            },
+            dir: 'desc'
+          },
+          'battery-asc': { getValue: p => p.battery_mah === null ? null : p.battery_mah, dir: 'asc' },
+          'battery-desc': { getValue: p => p.battery_mah === null ? null : p.battery_mah, dir: 'desc' },
+          'weight-asc': { getValue: p => p.weight_g === null ? null : p.weight_g, dir: 'asc' },
+          'weight-desc': { getValue: p => p.weight_g === null ? null : p.weight_g, dir: 'desc' }
+        };
+        return specs[field] || specs['newest'];
       }
 
       function sortPhones(phones) {
+        const spec = getSortSpec(sortOrder);
         return [...phones].sort((a, b) => {
-          const av = getSortValue(a, sortOrder);
-          const bv = getSortValue(b, sortOrder);
-          if (av === bv) return 0;
-          return av < bv ? -1 : 1;
+          const av = spec.getValue(a);
+          const bv = spec.getValue(b);
+
+          // Both null -> tie, fall back to release date newest first
+          if (av === null && bv === null) {
+            const ad = a.released ? new Date(a.released).getTime() : 0;
+            const bd = b.released ? new Date(b.released).getTime() : 0;
+            return bd - ad;
+          }
+          // a null -> a goes last
+          if (av === null) return 1;
+          // b null -> b goes last
+          if (bv === null) return -1;
+
+          // Both have values
+          const cmp = spec.dir === 'asc' ? av - bv : bv - av;
+          if (cmp !== 0) return cmp;
+
+          // Tie-breaker: release date, newest first
+          const ad = a.released ? new Date(a.released).getTime() : 0;
+          const bd = b.released ? new Date(b.released).getTime() : 0;
+          return bd - ad;
         });
       }
 
