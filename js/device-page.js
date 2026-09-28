@@ -551,7 +551,7 @@
   }
 
   function renderCompareButton() {
-    const btn = document.query('.compare-btn');
+    const btn = document.querySelector('.compare-btn');
     if (btn) {
       btn.href = `../compare.html?ids=${phone.id}`;
     }

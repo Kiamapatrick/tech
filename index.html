@@ -103,8 +103,8 @@
     </div>
   </div>
 
-  <script defer src="js/phones-data.js"></script>
-  <script defer>
+  <script src="js/phones-data.js"></script>
+  <script>
     (function () {
       const grid = document.getElementById('phone-grid');
       const searchInput = document.getElementById('search-input');
@@ -261,11 +261,18 @@
         searchInput.value = searchQuery;
         searchClear.hidden = !searchQuery;
 
+        const validCategories = new Set();
+        document.querySelectorAll('.chip[data-filter="category"]').forEach(c => validCategories.add(c.dataset.value));
+        const validYears = new Set();
+        document.querySelectorAll('.chip[data-filter="year"]').forEach(c => validYears.add(c.dataset.value));
+        const validSorts = new Set([...sortSelect.options].map(o => o.value));
+
         activeFilters.category.clear();
-        state.category.forEach(v => activeFilters.category.add(v));
+        state.category.forEach(v => { if (validCategories.has(v)) activeFilters.category.add(v); });
         activeFilters.year.clear();
-        state.year.forEach(v => activeFilters.year.add(v));
-        sortOrder = state.sort;
+        state.year.forEach(v => { if (validYears.has(v)) activeFilters.year.add(v); });
+
+        sortOrder = validSorts.has(state.sort) ? state.sort : 'newest';
         sortSelect.value = sortOrder;
 
         chips.forEach(chip => {
@@ -290,7 +297,7 @@
         if (searchQuery) parts.push({ type: 'search', label: `Search: "${searchQuery}"` });
         activeFilters.category.forEach(v => parts.push({ type: 'category', value: v, label: `Category: ${v}` }));
         activeFilters.year.forEach(v => parts.push({ type: 'year', value: v, label: `Year: ${v}` }));
-        if (sortOrder !== 'newest') parts.push({ type: 'sort', label: `Sort: ${sortSelect.options[sortSelect.selectedIndex].text}` });
+        if (sortOrder !== 'newest' && sortSelect.options[sortSelect.selectedIndex]) parts.push({ type: 'sort', label: `Sort: ${sortSelect.options[sortSelect.selectedIndex].text}` });
 
         activeFiltersList.innerHTML = parts.map(p => `
           <span class="active-filter-tag" data-type="${p.type}" data-value="${p.value || ''}">
