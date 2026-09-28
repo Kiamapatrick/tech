@@ -3,13 +3,49 @@
   if (!phoneId) return;
 
   const phone = PHONES.find(p => p.id === phoneId);
-  if (!phone) return;
+
+  if (!phone) {
+    document.title = 'Phone not found - goatedTech';
+    const main = document.querySelector('main');
+    if (main) {
+      main.innerHTML = `
+        <section class="section-band" style="background: var(--white);">
+          <div class="container" style="text-align: center; padding: 4rem 1.5rem;">
+            <h1 class="section-heading" style="margin-bottom: 1rem;">Phone not found</h1>
+            <p style="color: var(--muted); margin-bottom: 2rem;">The requested phone (${phoneId}) does not exist in our database.</p>
+            <a href="../" class="compare-btn">Back to all iPhones</a>
+          </div>
+        </section>
+      `;
+    }
+    return;
+  }
 
   document.title = `${phone.name} - goatedTech`;
   document.body.setAttribute('data-brand', phone.brand);
 
   const isFoldable = phone.category === 'foldable';
   const verified = phone._verified || {};
+
+  const STORAGE_KEY = 'goatedTech_compare';
+  let compareSelection = [];
+
+  function loadCompareSelection() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        compareSelection = JSON.parse(stored).filter(id => PHONES.some(p => p.id === id));
+      }
+    } catch (e) {
+      compareSelection = [];
+    }
+  }
+
+  function saveCompareSelection() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(compareSelection));
+    } catch (e) {}
+  }
 
   function isUnverified(path) {
     return verified[path] === false;
@@ -147,14 +183,14 @@
     if (phone.network_tech) networkRows.push(['Technology', phone.network_tech]);
     if (phone.network_bands) networkRows.push(['Bands', phone.network_bands]);
     if (phone.cellular_modem) networkRows.push(['Modem', phone.cellular_modem]);
-    if (networkRows.length) groups.push({ title: 'Network', rows: networkRows });
+    if (networkRows.length) groups.push({ title: 'Network', id: 'network', rows: networkRows });
 
     // Launch
     const launchRows = [];
     if (phone.announced) launchRows.push(['Announced', phone.announced]);
     if (phone.released) launchRows.push(['Released', formatDate(phone.released)]);
     if (phone.status) launchRows.push(['Status', phone.status]);
-    if (launchRows.length) groups.push({ title: 'Launch', rows: launchRows });
+    if (launchRows.length) groups.push({ title: 'Launch', id: 'launch', rows: launchRows });
 
     // Body
     const bodyRows = [];
@@ -176,7 +212,7 @@
     if (phone.sim) bodyRows.push(['SIM', phone.sim]);
     if (phone.water) bodyRows.push(['Water Resistance', phone.water]);
     if (phone.biometrics) bodyRows.push(['Biometrics', phone.biometrics]);
-    if (bodyRows.length) groups.push({ title: 'Body', rows: bodyRows });
+    if (bodyRows.length) groups.push({ title: 'Body', id: 'body', rows: bodyRows });
 
     // Display
     const displayRows = [];
@@ -200,7 +236,7 @@
         if (disp.notes) displayRows.push(['Features', disp.notes]);
       }
     }
-    if (displayRows.length) groups.push({ title: 'Display', rows: displayRows });
+    if (displayRows.length) groups.push({ title: 'Display', id: 'display', rows: displayRows });
 
     // Platform
     const platformRows = [];
@@ -209,7 +245,7 @@
     if (phone.cpu) platformRows.push(['CPU', phone.cpu]);
     if (phone.gpu) platformRows.push(['GPU', phone.gpu]);
     if (phone.neural_engine) platformRows.push(['Neural Engine', phone.neural_engine]);
-    if (platformRows.length) groups.push({ title: 'Platform', rows: platformRows });
+    if (platformRows.length) groups.push({ title: 'Platform', id: 'platform', rows: platformRows });
 
     // Memory
     const memoryRows = [];
@@ -218,7 +254,7 @@
       memoryRows.push(['Storage', storage]);
     }
     if (phone.ram) memoryRows.push(['RAM', phone.ram]);
-    if (memoryRows.length) groups.push({ title: 'Memory', rows: memoryRows });
+    if (memoryRows.length) groups.push({ title: 'Memory', id: 'memory', rows: memoryRows });
 
     // Camera
     const cameraRows = [];
@@ -229,13 +265,13 @@
     if (cam.front) cameraRows.push(['Front Camera', `${cam.front} MP`]);
     if (cam.notes) cameraRows.push(['Features', cam.notes]);
     if (cam.video) cameraRows.push(['Video', cam.video]);
-    if (cameraRows.length) groups.push({ title: 'Camera', rows: cameraRows });
+    if (cameraRows.length) groups.push({ title: 'Camera', id: 'camera', rows: cameraRows });
 
     // Sound
     const soundRows = [];
     if (phone.speakers) soundRows.push(['Speakers', phone.speakers]);
     if (phone.headphone_jack !== undefined) soundRows.push(['Headphone Jack', phone.headphone_jack ? '3.5mm' : 'None']);
-    if (soundRows.length) groups.push({ title: 'Sound', rows: soundRows });
+    if (soundRows.length) groups.push({ title: 'Sound', id: 'sound', rows: soundRows });
 
     // Connectivity
     const connectivityRows = [];
@@ -244,7 +280,7 @@
     if (phone.gps) connectivityRows.push(['GPS', phone.gps]);
     if (phone.nfc) connectivityRows.push(['NFC', phone.nfc ? 'Yes' : 'No']);
     if (phone.usb) connectivityRows.push(['USB', phone.usb]);
-    if (connectivityRows.length) groups.push({ title: 'Connectivity', rows: connectivityRows });
+    if (connectivityRows.length) groups.push({ title: 'Connectivity', id: 'connectivity', rows: connectivityRows });
 
     // Battery
     const batteryRows = [];
@@ -252,7 +288,7 @@
     if (phone.charging_w) batteryRows.push(['Charging', `${phone.charging_w}W`]);
     if (phone.wireless_charging) batteryRows.push(['Wireless Charging', phone.wireless_charging]);
     if (phone.magsafe_charging) batteryRows.push(['MagSafe Charging', phone.magsafe_charging]);
-    if (batteryRows.length) groups.push({ title: 'Battery', rows: batteryRows });
+    if (batteryRows.length) groups.push({ title: 'Battery', id: 'battery', rows: batteryRows });
 
     // Misc
     const miscRows = [];
@@ -263,7 +299,7 @@
     if (phone.model_numbers) miscRows.push(['Model Numbers', phone.model_numbers]);
     if (phone.price) miscRows.push(['Launch Price', formatPrice(phone.price) + estMark('price')]);
     if (phone.note) miscRows.push(['Note', phone.note]);
-    if (miscRows.length) groups.push({ title: 'Misc', rows: miscRows });
+    if (miscRows.length) groups.push({ title: 'Misc', id: 'misc', rows: miscRows });
 
     return groups;
   }
@@ -292,7 +328,7 @@
         html += `
           <div class="spec-pair">
             ${pairGroups.map(group => `
-              <div class="spec-section spec-col">
+              <div class="spec-section spec-col" id="${group.id}">
                 <h2 class="spec-section-title section-heading">${group.title}</h2>
                 <table class="spec-table">
                   <tbody>
@@ -311,7 +347,7 @@
       } else {
         const group = pairGroups[0];
         html += `
-          <div class="spec-section spec-full">
+          <div class="spec-section spec-full" id="${group.id}">
             <h2 class="spec-section-title section-heading">${group.title}</h2>
             <table class="spec-table">
               <tbody>
@@ -331,15 +367,132 @@
     container.innerHTML = html;
   }
 
+  function renderSectionNav() {
+    const groups = buildSpecGroups();
+    const navContainer = document.getElementById('section-nav');
+    if (!navContainer || groups.length === 0) return;
+
+    navContainer.innerHTML = `
+      <nav class="section-nav" aria-label="Section navigation">
+        <ul class="section-nav-list">
+          ${groups.map(g => `<li><a href="#${g.id}" class="section-nav-link" data-section="${g.id}">${g.title}</a></li>`).join('')}
+        </ul>
+      </nav>
+    `;
+
+    const links = navContainer.querySelectorAll('.section-nav-link');
+    const sections = groups.map(g => document.getElementById(g.id)).filter(Boolean);
+
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const link = navContainer.querySelector(`.section-nav-link[data-section="${entry.target.id}"]`);
+        if (link) {
+          link.classList.toggle('active', entry.isIntersecting);
+        }
+      });
+    }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+
+    sections.forEach(section => observer.observe(section));
+
+    links.forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.getElementById(link.dataset.section);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
+
+  function renderPrevNext() {
+    const container = document.getElementById('prev-next-nav');
+    if (!container) return;
+
+    const sorted = [...PHONES].filter(p => p.released).sort((a, b) => new Date(a.released) - new Date(b.released));
+    const currentIndex = sorted.findIndex(p => p.id === phone.id);
+
+    const prev = currentIndex > 0 ? sorted[currentIndex - 1] : null;
+    const next = currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null;
+
+    let html = '<nav class="prev-next-nav" aria-label="Previous and next models">';
+    if (prev) {
+      html += `<a href="../phones/${prev.id}.html" class="prev-next-link prev" rel="prev">
+        <span class="prev-next-label">Previous</span>
+        <span class="prev-next-name">${prev.name}</span>
+      </a>`;
+    }
+    if (next) {
+      html += `<a href="../phones/${next.id}.html" class="prev-next-link next" rel="next">
+        <span class="prev-next-label">Next</span>
+        <span class="prev-next-name">${next.name}</span>
+      </a>`;
+    }
+    html += '</nav>';
+    container.innerHTML = html;
+  }
+
+  function renderSameLine() {
+    const container = document.getElementById('same-line');
+    if (!container) return;
+
+    const sameYear = PHONES.filter(p => p.year === phone.year && p.id !== phone.id);
+    if (sameYear.length === 0) return;
+
+    container.innerHTML = `
+      <div class="same-line">
+        <h3 class="same-line-title">Same generation (${phone.year})</h3>
+        <ul class="same-line-list">
+          ${sameYear.map(p => `<li><a href="../phones/${p.id}.html">${p.name}</a></li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
   function renderCompareButton() {
     const btn = document.querySelector('.compare-btn');
     if (btn) {
       btn.href = `../compare.html?ids=${phone.id}`;
     }
+
+    const addBtn = document.getElementById('add-to-compare');
+    if (addBtn) {
+      loadCompareSelection();
+      const isSelected = compareSelection.includes(phone.id);
+      addBtn.classList.toggle('active', isSelected);
+      addBtn.textContent = isSelected ? 'Added to compare' : 'Add to compare';
+      addBtn.setAttribute('aria-pressed', isSelected);
+
+      addBtn.addEventListener('click', e => {
+        e.preventDefault();
+        if (compareSelection.includes(phone.id)) {
+          compareSelection = compareSelection.filter(i => i !== phone.id);
+          addBtn.classList.remove('active');
+          addBtn.textContent = 'Add to compare';
+          addBtn.setAttribute('aria-pressed', 'false');
+        } else {
+          if (compareSelection.length >= 3) {
+            alert('Maximum 3 phones for comparison');
+            return;
+          }
+          compareSelection.push(phone.id);
+          addBtn.classList.add('active');
+          addBtn.textContent = 'Added to compare';
+          addBtn.setAttribute('aria-pressed', 'true');
+        }
+        saveCompareSelection();
+      });
+    }
   }
 
+  loadCompareSelection();
   renderHero();
   renderHeadlineStats();
   renderSpecSections();
+  renderSectionNav();
+  renderPrevNext();
+  renderSameLine();
   renderCompareButton();
 })();

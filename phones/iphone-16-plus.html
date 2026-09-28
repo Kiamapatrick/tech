@@ -30,13 +30,32 @@
 
     <section class="section-band" style="background: var(--white);">
       <div class="container">
+        <nav id="section-nav" class="section-nav-container" aria-label="Section navigation"></nav>
+      </div>
+    </section>
+
+    <section class="section-band" style="background: var(--white);">
+      <div class="container">
         <div id="spec-sections"></div>
       </div>
     </section>
 
     <section class="section-band" style="background: var(--surface);">
+      <div class="container">
+        <div id="same-line"></div>
+      </div>
+    </section>
+
+    <section class="section-band" style="background: var(--white);">
+      <div class="container">
+        <div id="prev-next-nav"></div>
+      </div>
+    </section>
+
+    <section class="section-band" style="background: var(--surface);">
       <div class="container" style="text-align: center;">
-        <a class="compare-btn" href="#">Compare this phone</a>
+        <button type="button" id="add-to-compare" class="compare-btn" aria-pressed="false">Add to compare</button>
+        <a class="compare-btn" href="#" style="margin-left: 1rem;">Compare this phone</a>
       </div>
     </section>
   </main>

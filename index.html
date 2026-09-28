@@ -17,41 +17,65 @@
     <section class="section-band" style="background: var(--white);">
       <div class="container">
         <div class="search-wrapper">
-          <input type="search" id="search-input" placeholder="Search iPhones..." aria-label="Search iPhones">
+          <input type="search" id="search-input" placeholder="Search iPhones..." aria-label="Search iPhones" autocomplete="off">
+          <button type="button" id="search-clear" class="search-clear" aria-label="Clear search" hidden>Clear</button>
         </div>
+        <div id="search-results-count" class="search-results-count" aria-live="polite" aria-atomic="true"></div>
       </div>
     </section>
 
     <section class="section-band" style="background: var(--surface);">
       <div class="container">
-        <div class="filter-chips" role="group" aria-label="Filter by category">
-          <button class="chip" data-filter="category" data-value="budget">Budget</button>
-          <button class="chip" data-filter="category" data-value="mini">Mini</button>
-          <button class="chip" data-filter="category" data-value="standard">Standard</button>
-          <button class="chip" data-filter="category" data-value="flagship">Flagship</button>
-          <button class="chip" data-filter="category" data-value="foldable">Foldable</button>
+        <div class="controls-row">
+          <div class="filter-chips" role="group" aria-label="Filter by category">
+            <button class="chip" data-filter="category" data-value="budget" aria-pressed="false">Budget</button>
+            <button class="chip" data-filter="category" data-value="mini" aria-pressed="false">Mini</button>
+            <button class="chip" data-filter="category" data-value="standard" aria-pressed="false">Standard</button>
+            <button class="chip" data-filter="category" data-value="flagship" aria-pressed="false">Flagship</button>
+            <button class="chip" data-filter="category" data-value="foldable" aria-pressed="false">Foldable</button>
+          </div>
+          <div class="filter-chips" role="group" aria-label="Filter by year">
+            <button class="chip" data-filter="year" data-value="2007" aria-pressed="false">2007</button>
+            <button class="chip" data-filter="year" data-value="2008" aria-pressed="false">2008</button>
+            <button class="chip" data-filter="year" data-value="2009" aria-pressed="false">2009</button>
+            <button class="chip" data-filter="year" data-value="2010" aria-pressed="false">2010</button>
+            <button class="chip" data-filter="year" data-value="2011" aria-pressed="false">2011</button>
+            <button class="chip" data-filter="year" data-value="2012" aria-pressed="false">2012</button>
+            <button class="chip" data-filter="year" data-value="2013" aria-pressed="false">2013</button>
+            <button class="chip" data-filter="year" data-value="2014" aria-pressed="false">2014</button>
+            <button class="chip" data-filter="year" data-value="2015" aria-pressed="false">2015</button>
+            <button class="chip" data-filter="year" data-value="2016" aria-pressed="false">2016</button>
+            <button class="chip" data-filter="year" data-value="2017" aria-pressed="false">2017</button>
+            <button class="chip" data-filter="year" data-value="2018" aria-pressed="false">2018</button>
+            <button class="chip" data-filter="year" data-value="2019" aria-pressed="false">2019</button>
+            <button class="chip" data-filter="year" data-value="2020" aria-pressed="false">2020</button>
+            <button class="chip" data-filter="year" data-value="2021" aria-pressed="false">2021</button>
+            <button class="chip" data-filter="year" data-value="2022" aria-pressed="false">2022</button>
+            <button class="chip" data-filter="year" data-value="2023" aria-pressed="false">2023</button>
+            <button class="chip" data-filter="year" data-value="2024" aria-pressed="false">2024</button>
+            <button class="chip" data-filter="year" data-value="2025" aria-pressed="false">2025</button>
+            <button class="chip" data-filter="year" data-value="2026" aria-pressed="false">2026</button>
+          </div>
+          <div class="sort-control">
+            <label for="sort-select" class="sort-label">Sort:</label>
+            <select id="sort-select" class="sort-select" aria-label="Sort phones">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="price-asc">Price low to high</option>
+              <option value="price-desc">Price high to low</option>
+              <option value="screen-asc">Screen size small to large</option>
+              <option value="screen-desc">Screen size large to small</option>
+              <option value="battery-asc">Battery low to high</option>
+              <option value="battery-desc">Battery high to low</option>
+              <option value="weight-asc">Lightest</option>
+              <option value="weight-desc">Heaviest</option>
+            </select>
+          </div>
         </div>
-        <div class="filter-chips" role="group" aria-label="Filter by year">
-          <button class="chip" data-filter="year" data-value="2007">2007</button>
-          <button class="chip" data-filter="year" data-value="2008">2008</button>
-          <button class="chip" data-filter="year" data-value="2009">2009</button>
-          <button class="chip" data-filter="year" data-value="2010">2010</button>
-          <button class="chip" data-filter="year" data-value="2011">2011</button>
-          <button class="chip" data-filter="year" data-value="2012">2012</button>
-          <button class="chip" data-filter="year" data-value="2013">2013</button>
-          <button class="chip" data-filter="year" data-value="2014">2014</button>
-          <button class="chip" data-filter="year" data-value="2015">2015</button>
-          <button class="chip" data-filter="year" data-value="2016">2016</button>
-          <button class="chip" data-filter="year" data-value="2017">2017</button>
-          <button class="chip" data-filter="year" data-value="2018">2018</button>
-          <button class="chip" data-filter="year" data-value="2019">2019</button>
-          <button class="chip" data-filter="year" data-value="2020">2020</button>
-          <button class="chip" data-filter="year" data-value="2021">2021</button>
-          <button class="chip" data-filter="year" data-value="2022">2022</button>
-          <button class="chip" data-filter="year" data-value="2023">2023</button>
-          <button class="chip" data-filter="year" data-value="2024">2024</button>
-          <button class="chip" data-filter="year" data-value="2025">2025</button>
-          <button class="chip" data-filter="year" data-value="2026">2026</button>
+        <div id="active-filters-bar" class="active-filters-bar" hidden>
+          <span class="active-filters-label">Active filters:</span>
+          <div id="active-filters-list" class="active-filters-list"></div>
+          <button type="button" id="clear-all-filters" class="clear-all-btn">Clear all</button>
         </div>
       </div>
     </section>
@@ -59,61 +83,417 @@
     <section class="section-band" style="background: var(--white);">
       <div class="container">
         <div id="phone-grid" class="phone-grid" role="list"></div>
+        <div id="empty-state" class="empty-state" hidden>
+          <p>No phones match your search and filters.</p>
+          <button type="button" id="empty-clear" class="compare-btn">Clear filters</button>
+        </div>
       </div>
     </section>
   </main>
+
+  <div id="compare-tray" class="compare-tray" hidden>
+    <div class="compare-tray-inner">
+      <span class="compare-tray-label">Compare:</span>
+      <div id="compare-tray-items" class="compare-tray-items"></div>
+      <div class="compare-tray-actions">
+        <button type="button" id="compare-tray-compare" class="compare-btn">Compare</button>
+        <button type="button" id="compare-tray-clear" class="compare-btn compare-btn-secondary">Clear</button>
+      </div>
+      <p id="compare-tray-max-msg" class="compare-tray-max-msg" hidden>Maximum 3 phones for comparison</p>
+    </div>
+  </div>
 
   <script src="js/phones-data.js"></script>
   <script>
     (function () {
       const grid = document.getElementById('phone-grid');
       const searchInput = document.getElementById('search-input');
+      const searchClear = document.getElementById('search-clear');
+      const resultsCount = document.getElementById('search-results-count');
       const chips = document.querySelectorAll('.chip');
+      const sortSelect = document.getElementById('sort-select');
+      const activeFiltersBar = document.getElementById('active-filters-bar');
+      const activeFiltersList = document.getElementById('active-filters-list');
+      const clearAllBtn = document.getElementById('clear-all-filters');
+      const emptyState = document.getElementById('empty-state');
+      const emptyClearBtn = document.getElementById('empty-clear');
+      const compareTray = document.getElementById('compare-tray');
+      const compareTrayItems = document.getElementById('compare-tray-items');
+      const compareTrayCompare = document.getElementById('compare-tray-compare');
+      const compareTrayClear = document.getElementById('compare-tray-clear');
+      const compareTrayMaxMsg = document.getElementById('compare-tray-max-msg');
 
       let activeFilters = { category: new Set(), year: new Set() };
       let searchQuery = '';
+      let sortOrder = 'newest';
+      let compareSelection = [];
+
+      const STORAGE_KEY = 'goatedTech_compare';
+
+      function loadCompareSelection() {
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            compareSelection = JSON.parse(stored).filter(id => PHONES.some(p => p.id === id));
+          }
+        } catch (e) {
+          compareSelection = [];
+        }
+      }
+
+      function saveCompareSelection() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(compareSelection));
+        } catch (e) {}
+      }
+
+      function updateCompareTray() {
+        compareTrayItems.innerHTML = compareSelection.map(id => {
+          const phone = PHONES.find(p => p.id === id);
+          if (!phone) return '';
+          return `
+            <div class="compare-tray-item" data-id="${phone.id}">
+              <span class="compare-tray-item-name">${phone.name}</span>
+              <button type="button" class="compare-tray-item-remove" aria-label="Remove ${phone.name}">x</button>
+            </div>
+          `;
+        }).join('');
+
+        const hasSelection = compareSelection.length > 0;
+        compareTray.hidden = !hasSelection;
+        compareTrayCompare.disabled = compareSelection.length < 2;
+        compareTrayMaxMsg.hidden = compareSelection.length < 3;
+      }
+
+      function addToCompare(id) {
+        if (compareSelection.includes(id)) return;
+        if (compareSelection.length >= 3) {
+          compareTrayMaxMsg.hidden = false;
+          setTimeout(() => { compareTrayMaxMsg.hidden = true; }, 2000);
+          return;
+        }
+        compareSelection.push(id);
+        saveCompareSelection();
+        updateCompareTray();
+        updateCardCompareButtons();
+      }
+
+      function removeFromCompare(id) {
+        compareSelection = compareSelection.filter(i => i !== id);
+        saveCompareSelection();
+        updateCompareTray();
+        updateCardCompareButtons();
+      }
+
+      function clearCompare() {
+        compareSelection = [];
+        saveCompareSelection();
+        updateCompareTray();
+        updateCardCompareButtons();
+      }
+
+      function updateCardCompareButtons() {
+        document.querySelectorAll('.card-compare-toggle').forEach(btn => {
+          const id = btn.dataset.id;
+          const isSelected = compareSelection.includes(id);
+          btn.classList.toggle('active', isSelected);
+          btn.setAttribute('aria-pressed', isSelected);
+          btn.textContent = isSelected ? 'Selected' : 'Compare';
+        });
+      }
+
+      function getSortValue(phone, field) {
+        switch (field) {
+          case 'newest': return phone.released ? new Date(phone.released).getTime() : 0;
+          case 'oldest': return phone.released ? -new Date(phone.released).getTime() : 0;
+          case 'price-asc': return phone.price === null ? Infinity : (Array.isArray(phone.price) ? phone.price[0] : phone.price);
+          case 'price-desc': return phone.price === null ? -Infinity : -(Array.isArray(phone.price) ? phone.price[0] : phone.price);
+          case 'screen-asc':
+            if (phone.display?.size) return phone.display.size;
+            if (phone.display?.inner) return phone.display.inner;
+            return -Infinity;
+          case 'screen-desc':
+            if (phone.display?.size) return -phone.display.size;
+            if (phone.display?.inner) return -phone.display.inner;
+            return Infinity;
+          case 'battery-asc': return phone.battery_mah === null ? Infinity : phone.battery_mah;
+          case 'battery-desc': return phone.battery_mah === null ? -Infinity : -phone.battery_mah;
+          case 'weight-asc': return phone.weight_g === null ? Infinity : phone.weight_g;
+          case 'weight-desc': return phone.weight_g === null ? -Infinity : -phone.weight_g;
+          default: return 0;
+        }
+      }
+
+      function sortPhones(phones) {
+        return [...phones].sort((a, b) => {
+          const av = getSortValue(a, sortOrder);
+          const bv = getSortValue(b, sortOrder);
+          if (av === bv) return 0;
+          return av < bv ? -1 : 1;
+        });
+      }
+
+      function getUrlState() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+          q: params.get('q') || '',
+          category: params.getAll('category'),
+          year: params.getAll('year'),
+          sort: params.get('sort') || 'newest'
+        };
+      }
+
+      function setUrlState() {
+        const params = new URLSearchParams();
+        if (searchQuery) params.set('q', searchQuery);
+        activeFilters.category.forEach(v => params.append('category', v));
+        activeFilters.year.forEach(v => params.append('year', v));
+        if (sortOrder !== 'newest') params.set('sort', sortOrder);
+        const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+        window.history.replaceState({}, '', newUrl);
+      }
+
+      function applyUrlState() {
+        const state = getUrlState();
+        searchQuery = state.q;
+        searchInput.value = searchQuery;
+        searchClear.hidden = !searchQuery;
+
+        activeFilters.category.clear();
+        state.category.forEach(v => activeFilters.category.add(v));
+        activeFilters.year.clear();
+        state.year.forEach(v => activeFilters.year.add(v));
+        sortOrder = state.sort;
+        sortSelect.value = sortOrder;
+
+        chips.forEach(chip => {
+          const filter = chip.dataset.filter;
+          const value = chip.dataset.value;
+          const isActive = activeFilters[filter]?.has(value);
+          chip.classList.toggle('active', isActive);
+          chip.setAttribute('aria-pressed', isActive);
+        });
+
+        render();
+        updateActiveFiltersBar();
+      }
+
+      function updateActiveFiltersBar() {
+        const hasFilters = searchQuery || activeFilters.category.size > 0 || activeFilters.year.size > 0 || sortOrder !== 'newest';
+        activeFiltersBar.hidden = !hasFilters;
+
+        if (!hasFilters) return;
+
+        const parts = [];
+        if (searchQuery) parts.push({ type: 'search', label: `Search: "${searchQuery}"` });
+        activeFilters.category.forEach(v => parts.push({ type: 'category', value: v, label: `Category: ${v}` }));
+        activeFilters.year.forEach(v => parts.push({ type: 'year', value: v, label: `Year: ${v}` }));
+        if (sortOrder !== 'newest') parts.push({ type: 'sort', label: `Sort: ${sortSelect.options[sortSelect.selectedIndex].text}` });
+
+        activeFiltersList.innerHTML = parts.map(p => `
+          <span class="active-filter-tag" data-type="${p.type}" data-value="${p.value || ''}">
+            ${p.label}
+            <button type="button" class="active-filter-remove" aria-label="Remove ${p.label}">x</button>
+          </span>
+        `).join('');
+      }
+
+      function matchesSearch(phone) {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          phone.name.toLowerCase().includes(q) ||
+          (phone.chip && phone.chip.toLowerCase().includes(q)) ||
+          String(phone.year).includes(q) ||
+          phone.category.toLowerCase().includes(q)
+        );
+      }
 
       function render() {
-        const filtered = PHONES.filter(phone => {
-          const matchesSearch = phone.name.toLowerCase().includes(searchQuery);
+        let filtered = PHONES.filter(phone => {
+          const matchesSearch = phone.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (phone.chip && phone.chip.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            String(phone.year).includes(searchQuery) ||
+            phone.category.toLowerCase().includes(searchQuery.toLowerCase());
           const matchesCategory = activeFilters.category.size === 0 || activeFilters.category.has(phone.category);
           const matchesYear = activeFilters.year.size === 0 || activeFilters.year.has(String(phone.year));
           return matchesSearch && matchesCategory && matchesYear;
         });
 
-        grid.innerHTML = filtered.map(phone => `
-          <article class="phone-card" role="listitem">
-            <a href="phones/${phone.id}.html">
-              <div class="card-illustration" aria-hidden="true">
-                <img src="img/${phone.id}.svg" alt="" class="card-svg">
-              </div>
-              <div class="card-content">
-                <h2 class="card-name section-heading">${phone.name}</h2>
-                <p class="card-spec">${phone.chip || '-'} | ${phone.display?.size || phone.display?.inner || '-'}in</p>
-              </div>
-            </a>
-          </article>
-        `).join('');
+        filtered = sortPhones(filtered);
+
+        const count = filtered.length;
+        resultsCount.textContent = count === 1 ? '1 phone' : `${count} phones`;
+
+        if (count === 0) {
+          grid.innerHTML = '';
+          emptyState.hidden = false;
+          return;
+        }
+
+        emptyState.hidden = true;
+        grid.innerHTML = filtered.map(phone => {
+          const isSelected = compareSelection.includes(phone.id);
+          return `
+            <article class="phone-card" role="listitem">
+              <a href="phones/${phone.id}.html">
+                <div class="card-illustration" aria-hidden="true">
+                  <img src="img/${phone.id}.svg" alt="" class="card-svg">
+                </div>
+                <div class="card-content">
+                  <h2 class="card-name section-heading">${phone.name}</h2>
+                  <p class="card-spec">${phone.chip || '-'} | ${phone.display?.size || phone.display?.inner || '-'}in</p>
+                </div>
+              </a>
+              <button type="button" class="card-compare-toggle ${isSelected ? 'active' : ''}" data-id="${phone.id}" aria-pressed="${isSelected}" aria-label="${isSelected ? 'Remove from comparison' : 'Add to comparison'}">${isSelected ? 'Selected' : 'Compare'}</button>
+            </article>
+          `;
+        }).join('');
+
+        grid.querySelectorAll('.card-compare-toggle').forEach(btn => {
+          btn.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            if (compareSelection.includes(id)) {
+              removeFromCompare(id);
+            } else {
+              addToCompare(id);
+            }
+          });
+        });
       }
 
-      searchInput.addEventListener('input', e => {
-        searchQuery = e.target.value.toLowerCase().trim();
+      function handleChipClick(chip) {
+        const filter = chip.dataset.filter;
+        const value = chip.dataset.value;
+        const set = activeFilters[filter];
+        if (set.has(value)) set.delete(value);
+        else set.add(value);
+        chip.classList.toggle('active', set.has(value));
+        chip.setAttribute('aria-pressed', set.has(value));
         render();
-      });
+        updateActiveFiltersBar();
+        setUrlState();
+      }
 
-      chips.forEach(chip => {
-        chip.addEventListener('click', () => {
+      function handleSearchInput() {
+        searchQuery = searchInput.value.toLowerCase().trim();
+        searchClear.hidden = !searchQuery;
+        render();
+        updateActiveFiltersBar();
+        setUrlState();
+      }
+
+      function handleSortChange() {
+        sortOrder = sortSelect.value;
+        render();
+        updateActiveFiltersBar();
+        setUrlState();
+      }
+
+      function handleActiveFilterRemove(e) {
+        const tag = e.target.closest('.active-filter-tag');
+        if (!tag) return;
+        const type = tag.dataset.type;
+        const value = tag.dataset.value;
+        if (type === 'search') {
+          searchQuery = '';
+          searchInput.value = '';
+          searchClear.hidden = true;
+        } else if (type === 'category') {
+          activeFilters.category.delete(value);
+        } else if (type === 'year') {
+          activeFilters.year.delete(value);
+        } else if (type === 'sort') {
+          sortOrder = 'newest';
+          sortSelect.value = 'newest';
+        }
+        chips.forEach(chip => {
           const filter = chip.dataset.filter;
-          const value = chip.dataset.value;
-          const set = activeFilters[filter];
-          if (set.has(value)) set.delete(value);
-          else set.add(value);
-          chip.classList.toggle('active', set.has(value));
-          render();
+          const val = chip.dataset.value;
+          const isActive = activeFilters[filter]?.has(val);
+          chip.classList.toggle('active', isActive);
+          chip.setAttribute('aria-pressed', isActive);
         });
-      });
+        render();
+        updateActiveFiltersBar();
+        setUrlState();
+      }
 
-      render();
+      function handleClearAll() {
+        searchQuery = '';
+        searchInput.value = '';
+        searchClear.hidden = true;
+        activeFilters.category.clear();
+        activeFilters.year.clear();
+        sortOrder = 'newest';
+        sortSelect.value = 'newest';
+        chips.forEach(chip => {
+          chip.classList.remove('active');
+          chip.setAttribute('aria-pressed', 'false');
+        });
+        render();
+        updateActiveFiltersBar();
+        setUrlState();
+      }
+
+      function handleSearchClear() {
+        searchQuery = '';
+        searchInput.value = '';
+        searchClear.hidden = true;
+        searchInput.focus();
+        render();
+        updateActiveFiltersBar();
+        setUrlState();
+      }
+
+      function handleEmptyClear() {
+        handleClearAll();
+        searchInput.focus();
+      }
+
+      function handleKeydown(e) {
+        if (e.key === '/' && document.activeElement !== searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        if (e.key === 'Escape' && document.activeElement === searchInput) {
+          searchInput.value = '';
+          searchQuery = '';
+          searchClear.hidden = true;
+          searchInput.blur();
+          render();
+          updateActiveFiltersBar();
+          setUrlState();
+        }
+      }
+
+      searchInput.addEventListener('input', handleSearchInput);
+      searchClear.addEventListener('click', handleSearchClear);
+      sortSelect.addEventListener('change', handleSortChange);
+      chips.forEach(chip => chip.addEventListener('click', () => handleChipClick(chip)));
+      activeFiltersList.addEventListener('click', handleActiveFilterRemove);
+      clearAllBtn.addEventListener('click', handleClearAll);
+      emptyClearBtn.addEventListener('click', handleEmptyClear);
+      compareTrayCompare.addEventListener('click', () => {
+        if (compareSelection.length >= 2) {
+          window.location.href = `compare.html?ids=${compareSelection.join(',')}`;
+        }
+      });
+      compareTrayClear.addEventListener('click', clearCompare);
+      compareTrayItems.addEventListener('click', e => {
+        const removeBtn = e.target.closest('.compare-tray-item-remove');
+        if (removeBtn) {
+          const item = removeBtn.closest('.compare-tray-item');
+          if (item) removeFromCompare(item.dataset.id);
+        }
+      });
+      document.addEventListener('keydown', handleKeydown);
+
+      loadCompareSelection();
+      applyUrlState();
+      updateCompareTray();
     })();
   </script>
 </body>
