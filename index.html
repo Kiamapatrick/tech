@@ -103,8 +103,8 @@
     </div>
   </div>
 
-  <script src="js/phones-data.js"></script>
-  <script>
+  <script defer src="js/phones-data.js"></script>
+  <script defer>
     (function () {
       const grid = document.getElementById('phone-grid');
       const searchInput = document.getElementById('search-input');
@@ -122,6 +122,7 @@
       const compareTrayCompare = document.getElementById('compare-tray-compare');
       const compareTrayClear = document.getElementById('compare-tray-clear');
       const compareTrayMaxMsg = document.getElementById('compare-tray-max-msg');
+      const siteHeader = document.querySelector('.site-header');
 
       let activeFilters = { category: new Set(), year: new Set() };
       let searchQuery = '';
@@ -161,6 +162,7 @@
 
         const hasSelection = compareSelection.length > 0;
         compareTray.hidden = !hasSelection;
+        compareTray.classList.toggle('visible', hasSelection);
         compareTrayCompare.disabled = compareSelection.length < 2;
         compareTrayMaxMsg.hidden = compareSelection.length < 3;
       }
@@ -309,6 +311,71 @@
         );
       }
 
+      let isRendering = false;
+      let lastCards = new Map();
+
+      function getCardRects() {
+        const rects = new Map();
+        grid.querySelectorAll('.phone-card').forEach(card => {
+          const id = card.querySelector('.card-compare-toggle')?.dataset.id;
+          if (id) rects.set(id, card.getBoundingClientRect());
+        });
+        return rects;
+      }
+
+      function animateFlip(newCards) {
+        const firstRender = lastCards.size === 0;
+        if (firstRender || document.documentElement.classList.contains('reduce-motion')) {
+          lastCards = newCards;
+          return Promise.resolve();
+        }
+
+        const animations = [];
+        newCards.forEach((rect, id) => {
+          const oldRect = lastCards.get(id);
+          if (!oldRect) return;
+
+          const card = grid.querySelector(`.card-compare-toggle[data-id="${id}"]`)?.closest('.phone-card');
+          if (!card) return;
+
+          const dx = oldRect.left - rect.left;
+          const dy = oldRect.top - rect.top;
+          const dw = oldRect.width / rect.width;
+          const dh = oldRect.height / rect.height;
+
+          card.style.transformOrigin = 'top left';
+          card.style.transition = 'transform 200ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+          card.style.transform = `translate(${dx}px, ${dy}px) scale(${dw}, ${dh})`;
+
+          animations.push(new Promise(resolve => {
+            requestAnimationFrame(() => {
+              card.style.transform = 'none';
+              card.addEventListener('transitionend', () => {
+                card.style.transition = '';
+                card.style.transformOrigin = '';
+                resolve();
+              }, { once: true });
+            });
+          }));
+        });
+
+        lastCards = newCards;
+        return Promise.all(animations);
+      }
+
+      function staggerReveal(cards) {
+        if (document.documentElement.classList.contains('reduce-motion')) {
+          cards.forEach(c => c.classList.add('visible'));
+          return;
+        }
+        cards.forEach((card, i) => {
+          card.style.transitionDelay = `${i * 40}ms`;
+          requestAnimationFrame(() => {
+            card.classList.add('visible');
+          });
+        });
+      }
+
       function render() {
         let filtered = PHONES.filter(phone => {
           const matchesSearch = phone.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -332,10 +399,14 @@
         }
 
         emptyState.hidden = true;
-        grid.innerHTML = filtered.map(phone => {
+
+        const prevRects = getCardRects();
+        const newIds = filtered.map(p => p.id);
+
+        grid.innerHTML = filtered.map((phone, index) => {
           const isSelected = compareSelection.includes(phone.id);
           return `
-            <article class="phone-card" role="listitem">
+            <article class="phone-card reveal" role="listitem" style="transition-delay: ${index * 40}ms;">
               <a href="phones/${phone.id}.html">
                 <div class="card-illustration" aria-hidden="true">
                   <img src="img/${phone.id}.svg" alt="" class="card-svg">
@@ -349,6 +420,12 @@
             </article>
           `;
         }).join('');
+
+        const newRects = getCardRects();
+        animateFlip(newRects).then(() => {
+          const cards = grid.querySelectorAll('.phone-card');
+          staggerReveal(cards);
+        });
 
         grid.querySelectorAll('.card-compare-toggle').forEach(btn => {
           btn.addEventListener('click', e => {
@@ -469,6 +546,14 @@
         }
       }
 
+      function handleScroll() {
+        if (window.scrollY > 8) {
+          siteHeader.classList.add('scrolled');
+        } else {
+          siteHeader.classList.remove('scrolled');
+        }
+      }
+
       searchInput.addEventListener('input', handleSearchInput);
       searchClear.addEventListener('click', handleSearchClear);
       sortSelect.addEventListener('change', handleSortChange);
@@ -490,10 +575,17 @@
         }
       });
       document.addEventListener('keydown', handleKeydown);
+      window.addEventListener('scroll', handleScroll, { passive: true });
 
       loadCompareSelection();
       applyUrlState();
       updateCompareTray();
+
+      // Initial reveal
+      requestAnimationFrame(() => {
+        const cards = grid.querySelectorAll('.phone-card');
+        staggerReveal(cards);
+      });
     })();
   </script>
 </body>

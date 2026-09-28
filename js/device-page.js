@@ -87,6 +87,32 @@
     return `<span class="color-swatch" style="background:${bg};color:${textColor}" title="${colorName}">${colorName}</span>`;
   }
 
+  function getNumericValue(str) {
+    if (!str) return null;
+    const cleaned = str.replace(/[^0-9.]/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? null : num;
+  }
+
+  function animateCountUp(el, target, suffix, duration) {
+    const start = 0;
+    const startTime = performance.now();
+    const isInt = Number.isInteger(target);
+
+    function step(now) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(start + (target - start) * eased);
+      el.textContent = current.toLocaleString() + (suffix || '');
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = target.toLocaleString() + (suffix || '');
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
   function renderHero() {
     const heroSection = document.querySelector('.device-hero .container');
     if (!heroSection) return;
@@ -95,16 +121,40 @@
     const metaEl = heroSection.querySelector('.device-meta');
     const illustrationEl = heroSection.querySelector('.device-illustration');
 
-    if (nameEl) nameEl.textContent = phone.name;
+    if (nameEl) {
+      nameEl.textContent = phone.name;
+      nameEl.style.opacity = '0';
+      nameEl.style.transform = 'translateY(20px)';
+      nameEl.style.transition = 'opacity 600ms cubic-bezier(0.25, 0.1, 0.25, 1), transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+    }
 
     if (metaEl) {
       const priceHtml = `<span>Price: ${formatPrice(phone.price)}${estMark('price')}</span>`;
       const releasedHtml = phone.released ? `<span>Released: ${formatDate(phone.released)}</span>` : '';
       metaEl.innerHTML = priceHtml + (releasedHtml ? ' | ' + releasedHtml : '');
+      metaEl.style.opacity = '0';
+      metaEl.style.transform = 'translateY(20px)';
+      metaEl.style.transition = 'opacity 600ms cubic-bezier(0.25, 0.1, 0.25, 1), transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1)';
     }
 
     if (illustrationEl) {
       illustrationEl.innerHTML = `<img src="../img/${phone.id}.svg" alt="" class="device-svg" aria-hidden="true">`;
+      illustrationEl.style.opacity = '0';
+      illustrationEl.style.transform = 'translateY(20px)';
+      illustrationEl.style.transition = 'opacity 600ms cubic-bezier(0.25, 0.1, 0.25, 1), transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+    }
+
+    // Staggered hero reveal
+    if (document.documentElement.classList.contains('reduce-motion')) {
+      [nameEl, metaEl, illustrationEl].forEach(el => {
+        if (el) { el.style.opacity = '1'; el.style.transform = 'none'; }
+      });
+    } else {
+      requestAnimationFrame(() => {
+        if (nameEl) { nameEl.style.opacity = '1'; nameEl.style.transform = 'none'; }
+        setTimeout(() => { if (metaEl) { metaEl.style.opacity = '1'; metaEl.style.transform = 'none'; } }, 80);
+        setTimeout(() => { if (illustrationEl) { illustrationEl.style.opacity = '1'; illustrationEl.style.transform = 'none'; } }, 160);
+      });
     }
   }
 
@@ -117,7 +167,8 @@
     if (phone.chip) {
       stats.push({
         label: 'Chip',
-        value: phone.chip + (phone.process ? ` (${phone.process})` : '')
+        value: phone.chip + (phone.process ? ` (${phone.process})` : ''),
+        numeric: false
       });
     }
 
@@ -137,14 +188,17 @@
         if (disp.res) displayValue += ` (${disp.res})`;
       }
       if (displayValue) {
-        stats.push({ label: displayLabel, value: displayValue });
+        stats.push({ label: displayLabel, value: displayValue, numeric: false });
       }
     }
 
     if (phone.battery_mah) {
       stats.push({
         label: 'Battery',
-        value: phone.battery_mah.toLocaleString() + ' mAh' + estMark('battery_mah')
+        value: phone.battery_mah.toLocaleString() + ' mAh' + estMark('battery_mah'),
+        numeric: true,
+        rawValue: phone.battery_mah,
+        suffix: ' mAh'
       });
     }
 
@@ -152,7 +206,8 @@
     if (standout) {
       stats.push({
         label: 'Standout',
-        value: standout
+        value: standout,
+        numeric: false
       });
     }
 
@@ -160,8 +215,8 @@
     const isSparse = statCount < 3;
 
     container.innerHTML = stats.map(s => `
-      <div class="stat${isSparse ? ' stat-sparse' : ''}">
-        <div class="stat-value">${s.value}</div>
+      <div class="stat${isSparse ? ' stat-sparse' : ''}" data-numeric="${s.numeric}" data-value="${s.rawValue || ''}" data-suffix="${s.suffix || ''}">
+        <div class="stat-value">${s.numeric ? '0' + (s.suffix || '') : s.value}</div>
         <div class="stat-label">${s.label}</div>
       </div>
     `).join('');
@@ -172,6 +227,36 @@
       container.style.marginLeft = 'auto';
       container.style.marginRight = 'auto';
     }
+
+    // Animate stats on scroll into view
+    const statEls = container.querySelectorAll('.stat');
+    if (document.documentElement.classList.contains('reduce-motion')) {
+      statEls.forEach(el => {
+        el.classList.add('visible');
+        const valEl = el.querySelector('.stat-value');
+        if (el.dataset.numeric === 'true' && valEl) {
+          valEl.textContent = (parseInt(el.dataset.value) || 0).toLocaleString() + (el.dataset.suffix || '');
+        }
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.classList.add('visible');
+            const valEl = entry.target.querySelector('.stat-value');
+            if (entry.target.dataset.numeric === 'true' && valEl) {
+              animateCountUp(valEl, parseInt(entry.target.dataset.value) || 0, entry.target.dataset.suffix || '', 900);
+            }
+          }, i * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -20% 0px', threshold: 0.1 });
+
+    statEls.forEach(el => observer.observe(el));
   }
 
   function buildSpecGroups() {
@@ -328,7 +413,7 @@
         html += `
           <div class="spec-pair">
             ${pairGroups.map(group => `
-              <div class="spec-section spec-col" id="${group.id}">
+              <div class="spec-section spec-col reveal" id="${group.id}">
                 <h2 class="spec-section-title section-heading">${group.title}</h2>
                 <table class="spec-table">
                   <tbody>
@@ -347,7 +432,7 @@
       } else {
         const group = pairGroups[0];
         html += `
-          <div class="spec-section spec-full" id="${group.id}">
+          <div class="spec-section spec-full reveal" id="${group.id}">
             <h2 class="spec-section-title section-heading">${group.title}</h2>
             <table class="spec-table">
               <tbody>
@@ -365,6 +450,20 @@
     });
 
     container.innerHTML = html;
+
+    // Reveal sections on scroll
+    if (!document.documentElement.classList.contains('reduce-motion')) {
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+
+      container.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+    }
   }
 
   function renderSectionNav() {
@@ -452,7 +551,7 @@
   }
 
   function renderCompareButton() {
-    const btn = document.querySelector('.compare-btn');
+    const btn = document.query('.compare-btn');
     if (btn) {
       btn.href = `../compare.html?ids=${phone.id}`;
     }
