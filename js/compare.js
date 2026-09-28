@@ -366,23 +366,32 @@
     const slotCount = Math.max(2, selectedIds.length);
     pickerContainer.innerHTML = '';
 
-    for (let i = 0; i < slotCount; i++) {
-      const slot = document.createElement('div');
-      slot.className = 'picker-slot';
-      slot.dataset.index = i;
+for (let i = 0; i < slotCount; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'picker-slot';
+        slot.dataset.index = i;
 
-      const select = document.createElement('select');
-      select.className = 'picker-select';
-      select.innerHTML = '<option value="">Select a phone...</option>' + buildSelectOptions(selectedIds[i]);
-      select.addEventListener('change', () => {
-        const newIds = Array.from(pickerContainer.querySelectorAll('.picker-select'))
-          .map(s => s.value)
-          .filter(v => v);
-        updateUrl(newIds);
-        renderTable(newIds);
-        renderSizeComparison(newIds);
-      });
-      slot.appendChild(select);
+        const selectedPhone = selectedIds[i] ? PHONES.find(p => p.id === selectedIds[i]) : null;
+        const preview = document.createElement('div');
+        preview.className = 'picker-preview';
+        if (selectedPhone) {
+          preview.innerHTML = `<img src="img/${selectedPhone.id}.svg" alt="" class="picker-preview-img" aria-hidden="true">`;
+        }
+        slot.appendChild(preview);
+
+        const select = document.createElement('select');
+        select.className = 'picker-select';
+        select.innerHTML = '<option value="">Select a phone...</option>' + buildSelectOptions(selectedIds[i]);
+        select.addEventListener('change', () => {
+          const newIds = Array.from(pickerContainer.querySelectorAll('.picker-select'))
+            .map(s => s.value)
+            .filter(v => v);
+          updateUrl(newIds);
+          renderTable(newIds);
+          renderSizeComparison(newIds);
+          renderPickers(newIds);
+        });
+        slot.appendChild(select);
 
       if (i < 2) {
         const swapBtn = document.createElement('button');
@@ -455,7 +464,10 @@
           <div class="compare-table-header">
             <div class="compare-table-header-cell"></div>
             ${phones.map(p => `
-              <div class="compare-table-header-cell" data-brand="${p.brand}">${p.name}</div>
+              <div class="compare-table-header-cell" data-brand="${p.brand}">
+        <img src="img/${p.id}.svg" alt="" class="compare-header-img" aria-hidden="true">
+        ${p.name}
+      </div>
             `).join('')}
           </div>
           <div class="compare-table-controls">
@@ -614,71 +626,14 @@
     const maxDisplayHeight = 360;
     const scale = maxDisplayHeight / maxHeightMm;
 
-    const silhouettesHtml = phoneData.map(p => {
+    const phoneImagesHtml = phoneData.map(p => {
       const displayH = Math.round(p.h * scale);
       const displayW = Math.round(p.w * scale);
-      const displayD = p.d;
-
-      const rx = Math.max(4, Math.round(12 * scale));
-
-      let camModuleHtml = '';
-      const camCount = getCameraCount(p.phone);
-      const camSize = Math.max(6, Math.round(8 * scale));
-      const camGap = Math.max(3, Math.round(4 * scale));
-      const camY = Math.round(20 * scale);
-      const camStartX = (displayW - (camCount * camSize + (camCount - 1) * camGap)) / 2;
-
-      if (camCount === 1) {
-        camModuleHtml = `<rect x="${camStartX}" y="${camY}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>`;
-      } else if (camCount === 2) {
-        camModuleHtml = `
-          <rect x="${camStartX}" y="${camY}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
-          <rect x="${camStartX + camSize + camGap}" y="${camY}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
-        `;
-      } else if (camCount >= 3) {
-        const row1Y = camY;
-        const row2Y = camY + camSize + camGap;
-        camModuleHtml = `
-          <rect x="${camStartX + camSize + camGap}" y="${row1Y}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
-          <rect x="${camStartX}" y="${row2Y}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
-          <rect x="${camStartX + 2 * (camSize + camGap)}" y="${row2Y}" width="${camSize}" height="${camSize}" rx="${Math.max(2, Math.round(camSize * 0.25))}" fill="#1a1a2e" opacity="0.35"/>
-        `;
-      }
-
-      const islandW = Math.max(24, Math.round(40 * scale));
-      const islandH = Math.max(4, Math.round(4 * scale));
-      const islandX = (displayW - islandW) / 2;
-      const islandY = Math.round(8 * scale);
-
-      const depthW = Math.max(2, Math.round(displayD * scale * 0.3));
-      const depthX = displayW + Math.round(4 * scale);
 
       return `
         <div class="size-phone" style="display: inline-block; vertical-align: bottom; margin: 0 1.5rem; text-align: center; opacity: 0; transform: scaleY(0); transform-origin: bottom; transition: opacity 400ms cubic-bezier(0.25, 0.1, 0.25, 1), transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1);" data-height="${displayH}">
-          <div class="size-silhouette" style="position: relative; display: inline-block;">
-            <svg width="${displayW + depthW + 12}" height="${displayH + 20}" style="position: absolute; left: -6px; top: -6px; pointer-events: none; z-index: 0;">
-              <rect x="6" y="10" width="${displayW}" height="${displayH}" rx="${rx}" fill="#000000" opacity="0.07"/>
-            </svg>
-            <svg width="${displayW + depthW}" height="${displayH}" style="display: block; z-index: 1;">
-              <defs>
-                <linearGradient id="body-grad-${p.phone.id}-size" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#fafafa" stop-opacity="0.95"/>
-                  <stop offset="30%" stop-color="#f0f0f5" stop-opacity="0.9"/>
-                  <stop offset="70%" stop-color="#e8e8f0" stop-opacity="0.85"/>
-                  <stop offset="100%" stop-color="#d8d8e8" stop-opacity="0.8"/>
-                </linearGradient>
-                <linearGradient id="highlight-${p.phone.id}-size" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3"/>
-                  <stop offset="50%" stop-color="#ffffff" stop-opacity="0.1"/>
-                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <rect x="0" y="0" width="${displayW}" height="${displayH}" rx="${rx}" fill="url(#body-grad-${p.phone.id}-size)"/>
-              <rect x="2" y="2" width="${displayW - 4}" height="${Math.max(8, Math.round(30 * scale))}" rx="${rx - 1}" fill="url(#highlight-${p.phone.id}-size)"/>
-              ${camModuleHtml}
-              <rect x="${islandX}" y="${islandY}" width="${islandW}" height="${islandH}" rx="${Math.max(1, Math.round(islandH / 2))}" fill="#1a1a2e" opacity="0.25"/>
-              <rect x="${depthX}" y="${Math.round(20 * scale)}" width="${depthW}" height="${displayH - Math.round(40 * scale)}" rx="1" fill="#d8d8e8" opacity="0.4"/>
-            </svg>
+          <div class="size-image" style="height: ${displayH}px; width: ${displayW}px; display: inline-block;">
+            <img src="img/${p.phone.id}.svg" alt="${p.phone.name}" style="width: 100%; height: 100%; object-fit: contain;" aria-hidden="true">
           </div>
           <div class="size-label" style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--muted); line-height: 1.4; opacity: 0; transition: opacity 300ms cubic-bezier(0.25, 0.1, 0.25, 1) 200ms;">
             <div style="font-weight: 600; color: var(--ink);">${p.phone.name}</div>
@@ -693,7 +648,7 @@
       <div class="container" style="text-align: center;">
         <h2 class="section-heading" style="margin-bottom: 2rem;">Size Comparison</h2>
         <div class="size-comparison-row" style="display: flex; align-items: flex-end; justify-content: center; min-height: ${maxDisplayHeight + 80}px; padding: 1rem 0;">
-          ${silhouettesHtml}
+          ${phoneImagesHtml}
         </div>
         <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">All phones shown at relative scale. Tallest phone = 360px.</p>
       </div>
