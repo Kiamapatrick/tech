@@ -1,16 +1,52 @@
+/* ============================================================
+   goatedTech — Compare Page Logic (Apple-grade Experience)
+   ============================================================ */
 (function () {
-  const MAX_PHONES = 3;
-  const pickerContainer = document.getElementById('compare-picker');
-  const tableWrapper = document.getElementById('compare-table-wrapper');
+  'use strict';
 
+  const MAX_PHONES = 3;
+
+  /* ── DOM Roots ─────────────────────────────────────── */
+  const heroRoot       = document.getElementById('cmp-hero-root');
+  const quicklookRoot  = document.getElementById('cmp-quicklook-root');
+  const stickyNavRoot  = document.getElementById('cmp-sticky-nav-root');
+  const stickyColsRoot = document.getElementById('cmp-sticky-columns-root');
+  const tableRoot      = document.getElementById('cmp-table-root');
+
+  /* ── Color Palette Map ─────────────────────────────── */
+  const COLOR_MAP = {
+    'black': '#1d1d1f', 'space black': '#1d1d1f', 'midnight': '#191f28',
+    'graphite': '#3a3a3c', 'jet black': '#0a0a0c', 'white': '#f5f5f7',
+    'cloud white': '#fafafc', 'starlight': '#f0eae1', 'silver': '#e2e2e6',
+    'gold': '#f5dfbe', 'rose gold': '#ebd0ca', 'soft pink': '#fad7dc',
+    'pink': '#f6cad1', 'blue': '#4a90d9', 'mist blue': '#9eb7d0',
+    'sierra blue': '#9bb5ce', 'pacific blue': '#2d4e68', 'deep blue': '#2b3846',
+    'ultramarine': '#395388', 'teal': '#367c7e', 'glacier': '#d7e2e8',
+    'green': '#517a61', 'sage': '#98a892', 'yellow': '#fbe38e',
+    'purple': '#8b7ca6', 'lavender': '#d1cbe0', 'red': '#c8252c',
+    'coral': '#ee6755', 'cosmic orange': '#d95a2b', 'burgundy': '#5e2129',
+    'space gray': '#535150', 'natural titanium': '#9f9587', 'blue titanium': '#3c4856',
+    'white titanium': '#edebe7', 'black titanium': '#3c3b37', 'desert titanium': '#c4b5a0',
+    'light gold': '#e9d6b4', 'sky blue': '#8ab5d6'
+  };
+
+  /* ── URL Helpers ───────────────────────────────────── */
   function getSelectedIds() {
     const params = new URLSearchParams(window.location.search);
-    const idsParam = params.get('ids');
-    if (!idsParam) return [];
-    return idsParam.split(',').filter(id => PHONES.some(p => p.id === id)).slice(0, MAX_PHONES);
+    const raw = params.get('ids') || '';
+    const parsed = raw.split(',')
+      .map(s => s.trim())
+      .filter(id => id && PHONES.some(p => p.id === id))
+      .slice(0, MAX_PHONES);
+
+    // Default to iPhone 16 Pro vs iPhone 16 if no IDs provided
+    if (parsed.length === 0) {
+      return ['iphone-16-pro', 'iphone-16'];
+    }
+    return parsed;
   }
 
-  function updateUrl(ids) {
+  function pushIds(ids) {
     const params = new URLSearchParams(window.location.search);
     if (ids.length) {
       params.set('ids', ids.join(','));
@@ -20,674 +56,629 @@
     window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
   }
 
-  function buildSelectOptions(selectedId) {
-    return PHONES.map(p => `
-      <option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.name}</option>
-    `).join('');
-  }
-
-  function isUnverified(phone, path) {
-    const verified = phone._verified || {};
-    return verified[path] === false;
-  }
-
+  /* ── Data Helpers ──────────────────────────────────── */
   function estMark(phone, path) {
-    return isUnverified(phone, path) ? '<span class="est-badge" aria-label="Estimated or unverified"> est.</span>' : '';
+    const v = phone._verified || {};
+    return v[path] === false ? '<span class="cmp-win-badge" style="background:var(--surface-2);color:var(--muted)">est.</span>' : '';
   }
 
   function formatPrice(price) {
     if (price === null || price === undefined) return 'TBA';
-    if (Array.isArray(price)) {
-      return '$' + price.map(p => p.toLocaleString()).join(' - ');
-    }
+    if (Array.isArray(price)) return '$' + price.map(p => p.toLocaleString()).join(' – ');
     return '$' + price.toLocaleString();
   }
 
-  function getNumericValue(value) {
-    if (!value || value === '-' || value === 'TBA') return null;
-    const cleaned = value.replace(/[^0-9.]/g, '');
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? null : num;
+  function numericVal(str) {
+    if (!str || str === '-' || str === 'TBA') return null;
+    const n = parseFloat(String(str).replace(/[^0-9.]/g, ''));
+    return isNaN(n) ? null : n;
   }
 
-  function isLowerBetter(label) {
-    const lowerBetterLabels = ['Weight', 'Price', 'Launch Price', 'Thickness', 'Depth'];
-    return lowerBetterLabels.some(l => label.toLowerCase().includes(l.toLowerCase()));
+  function lowerIsBetter(label) {
+    return /weight|price|thickness|depth|dims/i.test(label);
   }
 
-  function buildSpecRows(phones) {
+  function calcBarPct(values, idx) {
+    const nums = values.map(numericVal);
+    const valid = nums.filter(n => n !== null);
+    if (valid.length < 2) return 0;
+    const max = Math.max(...valid);
+    const val = nums[idx];
+    if (val === null || max === 0) return 0;
+    return Math.max(12, (val / max) * 100);
+  }
+
+  /* ── Swatch Renderer ───────────────────────────────── */
+  function renderColorDots(colors) {
+    if (!colors || !colors.length) return '';
+    return colors.map(c => {
+      const k = c.toLowerCase();
+      const hex = COLOR_MAP[k] || '#d1d1d6';
+      return `<span class="cmp-swatch-dot" style="background-color:${hex}" title="${c}"></span>`;
+    }).join('');
+  }
+
+  function renderColorPills(colors) {
+    if (!colors || !colors.length) return '-';
+    return `<div class="cmp-color-pills">${colors.map(c => {
+      const k = c.toLowerCase();
+      const hex = COLOR_MAP[k] || '#d1d1d6';
+      return `<span class="cmp-color-pill"><span class="cmp-color-pill-dot" style="background-color:${hex}"></span>${c}</span>`;
+    }).join('')}</div>`;
+  }
+
+  /* ── Specification Data Builder ────────────────────── */
+  function buildGroups(phones) {
     const isFoldable = phones.some(p => p.category === 'foldable');
-    const rows = [];
+    const groups = [];
 
-    // Network
-    const networkRows = [];
-    const networkTech = phones.map(p => p.network_tech || '-');
-    if (networkTech.some(v => v !== '-')) {
-      networkRows.push({ label: 'Technology', values: networkTech, path: 'network_tech', numeric: false });
-    }
-    const networkBands = phones.map(p => p.network_bands || '-');
-    if (networkBands.some(v => v !== '-')) {
-      networkRows.push({ label: 'Bands', values: networkBands, path: 'network_bands', numeric: false });
-    }
-    const cellularModem = phones.map(p => p.cellular_modem || '-');
-    if (cellularModem.some(v => v !== '-')) {
-      networkRows.push({ label: 'Modem', values: cellularModem, path: 'cellular_modem', numeric: false });
-    }
-    if (networkRows.length) rows.push({ group: 'Network', items: networkRows });
-
-    // Launch
-    const launchRows = [];
-    const announced = phones.map(p => p.announced || '-');
-    if (announced.some(v => v !== '-')) {
-      launchRows.push({ label: 'Announced', values: announced, path: 'announced', numeric: false });
-    }
-    const released = phones.map(p => p.released ? new Date(p.released).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '-');
-    if (released.some(v => v !== '-')) {
-      launchRows.push({ label: 'Released', values: released, path: 'released', numeric: false });
-    }
-    const status = phones.map(p => p.status || '-');
-    if (status.some(v => v !== '-')) {
-      launchRows.push({ label: 'Status', values: status, path: 'status', numeric: false });
-    }
-    if (launchRows.length) rows.push({ group: 'Launch', items: launchRows });
-
-    // Body
-    const bodyRows = [];
-    if (isFoldable) {
-      const dimsClosed = phones.map(p => {
-        if (!p.dims_closed_mm) return '-';
-        const [w, h, d] = p.dims_closed_mm;
-        return `${w} x ${h} x ${d} mm` + estMark(p, 'dims_closed_mm');
-      });
-      if (dimsClosed.some(v => v !== '-')) {
-        bodyRows.push({ label: 'Dimensions (closed)', values: dimsClosed, path: 'dims_closed_mm', numeric: false });
-      }
-      const dimsOpen = phones.map(p => {
-        if (!p.dims_open_mm) return '-';
-        const [w, h, d] = p.dims_open_mm;
-        return `${w} x ${h} x ${d} mm` + estMark(p, 'dims_open_mm');
-      });
-      if (dimsOpen.some(v => v !== '-')) {
-        bodyRows.push({ label: 'Dimensions (open)', values: dimsOpen, path: 'dims_open_mm', numeric: false });
-      }
-    } else {
-      const dims = phones.map(p => {
-        if (!p.dims_mm) return '-';
-        const [w, h, d] = p.dims_mm;
-        return `${w} x ${h} x ${d} mm` + estMark(p, 'dims_mm');
-      });
-      if (dims.some(v => v !== '-')) {
-        bodyRows.push({ label: 'Dimensions', values: dims, path: 'dims_mm', numeric: false });
+    function addGroup(name, slug, rows) {
+      const filtered = rows.filter(r => r.values.some(v => v !== '-' && v !== 'TBA' && v));
+      if (filtered.length) {
+        groups.push({ group: name, slug: slug, items: filtered });
       }
     }
-    const weight = phones.map(p => p.weight_g ? `${p.weight_g} g` + estMark(p, 'weight_g') : '-');
-    if (weight.some(v => v !== '-')) {
-      bodyRows.push({ label: 'Weight', values: weight, path: 'weight_g', numeric: true });
-    }
-    const build = phones.map(p => p.build || '-');
-    if (build.some(v => v !== '-')) {
-      bodyRows.push({ label: 'Build', values: build, path: 'build', numeric: false });
-    }
-    const sim = phones.map(p => p.sim || '-');
-    if (sim.some(v => v !== '-')) {
-      bodyRows.push({ label: 'SIM', values: sim, path: 'sim', numeric: false });
-    }
-    const water = phones.map(p => p.water || '-');
-    if (water.some(v => v !== '-')) {
-      bodyRows.push({ label: 'Water Resistance', values: water, path: 'water', numeric: false });
-    }
-    const biometrics = phones.map(p => p.biometrics || '-');
-    if (biometrics.some(v => v !== '-')) {
-      bodyRows.push({ label: 'Biometrics', values: biometrics, path: 'biometrics', numeric: false });
-    }
-    if (bodyRows.length) rows.push({ group: 'Body', items: bodyRows });
 
-    // Display
-    const displayRows = [];
-    const dispType = phones.map(p => p.display?.tech || '-');
-    if (dispType.some(v => v !== '-')) {
-      displayRows.push({ label: 'Type', values: dispType, path: 'display.tech', numeric: false });
-    }
-    const dispSize = phones.map(p => p.display?.size ? `${p.display.size}in` : '-');
-    if (dispSize.some(v => v !== '-')) {
-      displayRows.push({ label: 'Size', values: dispSize, path: 'display.size', numeric: true });
-    }
-    const dispRes = phones.map(p => p.display?.res || '-');
-    if (dispRes.some(v => v !== '-')) {
-      displayRows.push({ label: 'Resolution', values: dispRes, path: 'display.res', numeric: false });
-    }
-    const dispRefresh = phones.map(p => p.display?.refresh ? `${p.display.refresh}Hz` : '-');
-    if (dispRefresh.some(v => v !== '-')) {
-      displayRows.push({ label: 'Refresh Rate', values: dispRefresh, path: 'display.refresh', numeric: true });
-    }
-    const dispPeak = phones.map(p => p.display?.peak_nits ? `${p.display.peak_nits.toLocaleString()} nits` : '-');
-    if (dispPeak.some(v => v !== '-')) {
-      displayRows.push({ label: 'Peak Brightness', values: dispPeak, path: 'display.peak_nits', numeric: true });
-    }
-    const dispProtect = phones.map(p => p.display?.protection || '-');
-    if (dispProtect.some(v => v !== '-')) {
-      displayRows.push({ label: 'Protection', values: dispProtect, path: 'display.protection', numeric: false });
-    }
-    const dispNotes = phones.map(p => p.display?.notes || '-');
-    if (dispNotes.some(v => v !== '-')) {
-      displayRows.push({ label: 'Features', values: dispNotes, path: 'display.notes', numeric: false });
-    }
-    if (displayRows.length) rows.push({ group: 'Display', items: displayRows });
+    /* Display */
+    addGroup('Display', 'display', [
+      { label: 'Screen Size',       values: phones.map(p => p.display?.size ? `${p.display.size}″` : (p.display?.inner ? `Inner: ${p.display.inner}″, Outer: ${p.display.outer}″` : '-')), numeric: true },
+      { label: 'Technology',        values: phones.map(p => p.display?.tech || '-'), numeric: false },
+      { label: 'Resolution',        values: phones.map(p => p.display?.res || '-'), numeric: false },
+      { label: 'Refresh Rate',      values: phones.map(p => p.display?.refresh ? `${p.display.refresh} Hz` : '-'), numeric: true },
+      { label: 'Peak Brightness',   values: phones.map(p => p.display?.peak_nits ? `${p.display.peak_nits.toLocaleString()} nits` : '-'), numeric: true },
+      { label: 'Display Features',  values: phones.map(p => p.display?.notes || '-'), numeric: false },
+    ]);
 
-    // Platform
-    const platformRows = [];
-    const os = phones.map(p => p.os || '-');
-    if (os.some(v => v !== '-')) {
-      platformRows.push({ label: 'OS', values: os, path: 'os', numeric: false });
-    }
-    const chipset = phones.map(p => p.chip ? `${p.chip}` + (p.process ? ` (${p.process})` : '') : '-');
-    if (chipset.some(v => v !== '-')) {
-      platformRows.push({ label: 'Chipset', values: chipset, path: 'chip', numeric: false });
-    }
-    const cpu = phones.map(p => p.cpu || '-');
-    if (cpu.some(v => v !== '-')) {
-      platformRows.push({ label: 'CPU', values: cpu, path: 'cpu', numeric: false });
-    }
-    const gpu = phones.map(p => p.gpu || '-');
-    if (gpu.some(v => v !== '-')) {
-      platformRows.push({ label: 'GPU', values: gpu, path: 'gpu', numeric: false });
-    }
-    const neural = phones.map(p => p.neural_engine || '-');
-    if (neural.some(v => v !== '-')) {
-      platformRows.push({ label: 'Neural Engine', values: neural, path: 'neural_engine', numeric: false });
-    }
-    if (platformRows.length) rows.push({ group: 'Platform', items: platformRows });
+    /* Platform & Chip */
+    addGroup('Platform & Chip', 'platform', [
+      { label: 'Chipset',           values: phones.map(p => p.chip ? `${p.chip}${p.process ? ` (${p.process})` : ''}` : '-'), numeric: false },
+      { label: 'CPU',               values: phones.map(p => p.cpu || '-'), numeric: false },
+      { label: 'GPU',               values: phones.map(p => p.gpu || '-'), numeric: false },
+      { label: 'Neural Engine',     values: phones.map(p => p.neural_engine || '-'), numeric: false },
+      { label: 'Operating System',  values: phones.map(p => p.os || '-'), numeric: false },
+      { label: 'RAM',               values: phones.map(p => p.ram ? `${p.ram} GB` : '-'), numeric: true },
+      { label: 'Storage Options',   values: phones.map(p => p.storage ? (Array.isArray(p.storage) ? p.storage.join(', ') : p.storage) : '-'), numeric: false },
+    ]);
 
-    // Memory
-    const memoryRows = [];
-    const storage = phones.map(p => {
-      if (!p.storage) return '-';
-      return Array.isArray(p.storage) ? p.storage.join(', ') : p.storage;
-    });
-    if (storage.some(v => v !== '-')) {
-      memoryRows.push({ label: 'Storage', values: storage, path: 'storage', numeric: false });
-    }
-    const ram = phones.map(p => p.ram || '-');
-    if (ram.some(v => v !== '-')) {
-      memoryRows.push({ label: 'RAM', values: ram, path: 'ram', numeric: true });
-    }
-    if (memoryRows.length) rows.push({ group: 'Memory', items: memoryRows });
+    /* Camera System */
+    addGroup('Camera System', 'camera', [
+      { label: 'Main Camera',       values: phones.map(p => p.camera?.main ? `${p.camera.main} MP${p.camera.main_aperture ? ` (${p.camera.main_aperture})` : ''}` : '-'), numeric: true },
+      { label: 'Ultra Wide',        values: phones.map(p => p.camera?.ultrawide ? `${p.camera.ultrawide} MP${p.camera.ultrawide_aperture ? ` (${p.camera.ultrawide_aperture})` : ''}` : '-'), numeric: true },
+      { label: 'Telephoto',         values: phones.map(p => p.camera?.tele ? `${p.camera.tele} MP${p.camera.tele_zoom ? ` (${p.camera.tele_zoom})` : ''}` : '-'), numeric: true },
+      { label: 'Front Camera',      values: phones.map(p => p.camera?.front ? `${p.camera.front} MP${p.camera.front_aperture ? ` (${p.camera.front_aperture})` : ''}` : '-'), numeric: true },
+      { label: 'Video Recording',   values: phones.map(p => p.camera?.video || '-'), numeric: false },
+      { label: 'Camera Features',   values: phones.map(p => p.camera?.notes || '-'), numeric: false },
+    ]);
 
-    // Camera
-    const cameraRows = [];
-    const camMain = phones.map(p => {
-      if (!p.camera?.main) return '-';
-      return `${p.camera.main} MP` + (p.camera.main_aperture ? ` (${p.camera.main_aperture})` : '') + estMark(p, 'camera.main');
-    });
-    if (camMain.some(v => v !== '-')) {
-      cameraRows.push({ label: 'Main Camera', values: camMain, path: 'camera.main', numeric: true });
-    }
-    const camUltra = phones.map(p => {
-      if (!p.camera?.ultrawide) return '-';
-      return `${p.camera.ultrawide} MP` + (p.camera.ultrawide_aperture ? ` (${p.camera.ultrawide_aperture})` : '');
-    });
-    if (camUltra.some(v => v !== '-')) {
-      cameraRows.push({ label: 'Ultrawide', values: camUltra, path: 'camera.ultrawide', numeric: true });
-    }
-    const camTele = phones.map(p => {
-      if (!p.camera?.tele) return '-';
-      return `${p.camera.tele} MP` + (p.camera.tele_zoom ? ` (${p.camera.tele_zoom})` : '');
-    });
-    if (camTele.some(v => v !== '-')) {
-      cameraRows.push({ label: 'Telephoto', values: camTele, path: 'camera.tele', numeric: true });
-    }
-    const camPeri = phones.map(p => {
-      if (!p.camera?.periscope_tele) return '-';
-      return `${p.camera.periscope_tele} MP` + (p.camera.periscope_zoom ? ` (${p.camera.periscope_zoom})` : '');
-    });
-    if (camPeri.some(v => v !== '-')) {
-      cameraRows.push({ label: 'Periscope Telephoto', values: camPeri, path: 'camera.periscope_tele', numeric: true });
-    }
-    const camFront = phones.map(p => {
-      if (!p.camera?.front) return '-';
-      return `${p.camera.front} MP` + (p.camera.front_aperture ? ` (${p.camera.front_aperture})` : '');
-    });
-    if (camFront.some(v => v !== '-')) {
-      cameraRows.push({ label: 'Front Camera', values: camFront, path: 'camera.front', numeric: true });
-    }
-    const camNotes = phones.map(p => p.camera?.notes || '-');
-    if (camNotes.some(v => v !== '-')) {
-      cameraRows.push({ label: 'Features', values: camNotes, path: 'camera.notes', numeric: false });
-    }
-    const camVideo = phones.map(p => p.camera?.video || '-');
-    if (camVideo.some(v => v !== '-')) {
-      cameraRows.push({ label: 'Video', values: camVideo, path: 'camera.video', numeric: false });
-    }
-    if (cameraRows.length) rows.push({ group: 'Camera', items: cameraRows });
+    /* Battery & Power */
+    addGroup('Battery & Power', 'battery', [
+      { label: 'Battery Capacity',  values: phones.map(p => p.battery_mah ? `${p.battery_mah.toLocaleString()} mAh` + estMark(p,'battery_mah') : '-'), numeric: true },
+      { label: 'Wired Charging',    values: phones.map(p => p.charging_w ? `${p.charging_w} W` : '-'), numeric: true },
+      { label: 'Wireless Charging', values: phones.map(p => p.wireless_charging || '-'), numeric: false },
+      { label: 'MagSafe Support',   values: phones.map(p => p.magsafe_charging || (p.wireless_charging ? 'Supported' : 'No')), numeric: false },
+    ]);
 
-    // Sound
-    const soundRows = [];
-    const speakers = phones.map(p => p.speakers || '-');
-    if (speakers.some(v => v !== '-')) {
-      soundRows.push({ label: 'Speakers', values: speakers, path: 'speakers', numeric: false });
-    }
-    const jack = phones.map(p => p.headphone_jack !== undefined ? (p.headphone_jack ? '3.5mm' : 'None') : '-');
-    if (jack.some(v => v !== '-')) {
-      soundRows.push({ label: 'Headphone Jack', values: jack, path: 'headphone_jack', numeric: false });
-    }
-    if (soundRows.length) rows.push({ group: 'Sound', items: soundRows });
+    /* Body & Materials */
+    const dimRows = isFoldable ? [
+      { label: 'Dimensions (closed)', values: phones.map(p => p.dims_closed_mm ? `${p.dims_closed_mm.join(' × ')} mm` : '-'), numeric: false },
+      { label: 'Dimensions (open)',   values: phones.map(p => p.dims_open_mm   ? `${p.dims_open_mm.join(' × ')} mm`   : '-'), numeric: false },
+    ] : [
+      { label: 'Dimensions',          values: phones.map(p => p.dims_mm ? `${p.dims_mm.join(' × ')} mm` + estMark(p,'dims_mm') : '-'), numeric: false },
+    ];
+    addGroup('Body & Materials', 'body', [
+      ...dimRows,
+      { label: 'Weight',            values: phones.map(p => p.weight_g ? `${p.weight_g} g` + estMark(p,'weight_g') : '-'), numeric: true },
+      { label: 'Build Materials',   values: phones.map(p => p.build || '-'), numeric: false },
+      { label: 'Water Resistance',  values: phones.map(p => p.water || '-'), numeric: false },
+      { label: 'Biometrics',        values: phones.map(p => p.biometrics || '-'), numeric: false },
+      { label: 'SIM Card',          values: phones.map(p => p.sim || '-'), numeric: false },
+    ]);
 
-    // Connectivity
-    const connectivityRows = [];
-    const wifi = phones.map(p => p.wifi || '-');
-    if (wifi.some(v => v !== '-')) {
-      connectivityRows.push({ label: 'Wi‑Fi', values: wifi, path: 'wifi', numeric: false });
-    }
-    const bluetooth = phones.map(p => p.bluetooth || '-');
-    if (bluetooth.some(v => v !== '-')) {
-      connectivityRows.push({ label: 'Bluetooth', values: bluetooth, path: 'bluetooth', numeric: false });
-    }
-    const gps = phones.map(p => p.gps || '-');
-    if (gps.some(v => v !== '-')) {
-      connectivityRows.push({ label: 'GPS', values: gps, path: 'gps', numeric: false });
-    }
-    const nfc = phones.map(p => p.nfc ? 'Yes' : (p.nfc === false ? 'No' : '-'));
-    if (nfc.some(v => v !== '-')) {
-      connectivityRows.push({ label: 'NFC', values: nfc, path: 'nfc', numeric: false });
-    }
-    const usb = phones.map(p => p.usb || '-');
-    if (usb.some(v => v !== '-')) {
-      connectivityRows.push({ label: 'USB', values: usb, path: 'usb', numeric: false });
-    }
-    if (connectivityRows.length) rows.push({ group: 'Connectivity', items: connectivityRows });
+    /* Connectivity */
+    addGroup('Connectivity', 'connectivity', [
+      { label: 'Cellular Technology', values: phones.map(p => p.network_tech || '-'), numeric: false },
+      { label: 'Modem',               values: phones.map(p => p.cellular_modem || '-'), numeric: false },
+      { label: 'Wi‑Fi',               values: phones.map(p => p.wifi || '-'), numeric: false },
+      { label: 'Bluetooth',           values: phones.map(p => p.bluetooth || '-'), numeric: false },
+      { label: 'Port / Connector',    values: phones.map(p => p.usb || '-'), numeric: false },
+    ]);
 
-    // Battery
-    const batteryRows = [];
-    const capacity = phones.map(p => p.battery_mah ? `${p.battery_mah.toLocaleString()} mAh` + estMark(p, 'battery_mah') : '-');
-    if (capacity.some(v => v !== '-')) {
-      batteryRows.push({ label: 'Capacity', values: capacity, path: 'battery_mah', numeric: true });
-    }
-    const charging = phones.map(p => p.charging_w ? `${p.charging_w}W` : '-');
-    if (charging.some(v => v !== '-')) {
-      batteryRows.push({ label: 'Wired Charging', values: charging, path: 'charging_w', numeric: true });
-    }
-    const wireless = phones.map(p => p.wireless_charging || '-');
-    if (wireless.some(v => v !== '-')) {
-      batteryRows.push({ label: 'Wireless Charging', values: wireless, path: 'wireless_charging', numeric: false });
-    }
-    const magsafe = phones.map(p => p.magsafe_charging || '-');
-    if (magsafe.some(v => v !== '-')) {
-      batteryRows.push({ label: 'MagSafe Charging', values: magsafe, path: 'magsafe_charging', numeric: false });
-    }
-    if (batteryRows.length) rows.push({ group: 'Battery', items: batteryRows });
+    /* Price & Launch */
+    addGroup('Price & Launch', 'price', [
+      { label: 'Launch Price',        values: phones.map(p => formatPrice(p.price) + estMark(p,'price')), numeric: true },
+      { label: 'Announced Date',      values: phones.map(p => p.announced || '-'), numeric: false },
+      { label: 'Release Date',        values: phones.map(p => p.released ? new Date(p.released).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '-'), numeric: false },
+    ]);
 
-    // Price
-    const priceRows = [];
-    const launchPrice = phones.map(p => formatPrice(p.price) + estMark(p, 'price'));
-    if (launchPrice.some(v => v !== '-')) {
-      priceRows.push({ label: 'Launch Price', values: launchPrice, path: 'price', numeric: true });
-    }
-    if (priceRows.length) rows.push({ group: 'Price', items: priceRows });
+    /* Misc & Finishes */
+    addGroup('Misc & Finishes', 'misc', [
+      { label: 'Available Colors',    values: phones.map(p => renderColorPills(p.colors)), numeric: false, raw: true },
+      { label: 'Model Numbers',       values: phones.map(p => p.model_numbers || '-'), numeric: false },
+      { label: 'Special Notes',       values: phones.map(p => p.note || '-'), numeric: false, raw: true },
+    ]);
 
-    // Colors (Misc)
-    const miscRows = [];
-    const colors = phones.map(p => {
-      if (!p.colors || !p.colors.length) return '-';
-      const colorMap = {
-        'black': '#1d1d1f', 'space black': '#1d1d1f', 'midnight': '#1d1d1f', 'graphite': '#3a3a3c', 'jet black': '#1d1d1f',
-        'white': '#ffffff', 'cloud white': '#ffffff', 'starlight': '#f5f0e8', 'silver': '#d1d1d6',
-        'gold': '#f7c873', 'rose gold': '#f7c6c6', 'soft pink': '#f7c6c6', 'pink': '#f5b7c0',
-        'blue': '#4a90d9', 'mist blue': '#a8c0e8', 'sierra blue': '#6c8fc0', 'pacific blue': '#5b8bd5', 'deep blue': '#2c3e6b', 'ultramarine': '#3f51b5', 'teal': '#008080', 'glacier': '#e8f0f8',
-        'green': '#4caf50', 'sage': '#8aae8a', 'yellow': '#f0c840',
-        'purple': '#8a4fff', 'lavender': '#c8b8e8',
-        'red': '#d92e2e', 'coral': '#ff6f61', 'cosmic orange': '#e86c00', 'burgundy': '#800020',
-        'space gray': '#8e8e93', 'natural titanium': '#d4d4d8', 'blue titanium': '#6e8db8', 'white titanium': '#f0f0f0', 'black titanium': '#2a2a2e', 'desert titanium': '#d4c4a8',
-        'light gold': '#e8d4a0', 'sky blue': '#87ceeb'
-      };
-      return `<div class="color-swatch-row">${p.colors.map(c => {
-        const key = c.toLowerCase();
-        const bg = colorMap[key] || '#e0e0e0';
-        const textColor = ['white', 'cloud white', 'starlight', 'silver', 'glacier', 'natural titanium', 'white titanium', 'desert titanium', 'light gold', 'sky blue', 'mist blue', 'sage', 'soft pink', 'pink', 'rose gold', 'yellow', 'gold', 'lavender'].includes(key) ? '#1d1d1f' : '#ffffff';
-        return `<span class="color-swatch" style="background:${bg};color:${textColor}" title="${c}">${c}</span>`;
-      }).join('')}</div>`;
-    });
-    if (colors.some(v => v !== '-')) {
-      miscRows.push({ label: 'Colors', values: colors, path: 'colors', numeric: false, raw: true });
-    }
-    const models = phones.map(p => p.model_numbers || '-');
-    if (models.some(v => v !== '-')) {
-      miscRows.push({ label: 'Model Numbers', values: models, path: 'model_numbers', numeric: false });
-    }
-    const note = phones.map(p => p.note || '-');
-    if (note.some(v => v !== '-')) {
-      miscRows.push({ label: 'Note', values: note, path: 'note', numeric: false, raw: true });
-    }
-    if (miscRows.length) rows.push({ group: 'Misc', items: miscRows });
-
-    return rows;
+    return groups;
   }
 
-  function renderPickers(selectedIds) {
-    const slotCount = Math.max(2, selectedIds.length);
-    pickerContainer.innerHTML = '';
+  /* ── 1. Render Hero / Model Showcase ───────────────── */
+  function renderHero(phones, ids) {
+    const cols = Math.min(MAX_PHONES, Math.max(2, phones.length + (phones.length < MAX_PHONES ? 1 : 0)));
+    const optionsHtml = PHONES.map(p => `<option value="${p.id}">${p.name} (${p.year})</option>`).join('');
 
-for (let i = 0; i < slotCount; i++) {
-        const slot = document.createElement('div');
-        slot.className = 'picker-slot';
-        slot.dataset.index = i;
+    let cardsHtml = '';
 
-        const selectedPhone = selectedIds[i] ? PHONES.find(p => p.id === selectedIds[i]) : null;
-        const preview = document.createElement('div');
-        preview.className = 'picker-preview';
-        if (selectedPhone) {
-          preview.innerHTML = `<img src="img/${selectedPhone.id}.svg" alt="" class="picker-preview-img" aria-hidden="true">`;
-        }
-        slot.appendChild(preview);
+    phones.forEach((p, idx) => {
+      const swatchesHtml = renderColorDots(p.colors);
+      const priceText = p.price ? `From ${formatPrice(p.price)} · ${p.year}` : `Released ${p.year}`;
+      const removeBtn = phones.length > 2
+        ? `<button type="button" class="cmp-card-remove" data-idx="${idx}" aria-label="Remove ${p.name}">✕</button>`
+        : '';
 
-        const select = document.createElement('select');
-        select.className = 'picker-select';
-        select.innerHTML = '<option value="">Select a phone...</option>' + buildSelectOptions(selectedIds[i]);
-        select.addEventListener('change', () => {
-          const newIds = Array.from(pickerContainer.querySelectorAll('.picker-select'))
-            .map(s => s.value)
-            .filter(v => v);
-          updateUrl(newIds);
-          renderTable(newIds);
-          renderSizeComparison(newIds);
-          renderPickers(newIds);
-        });
-        slot.appendChild(select);
-
-      if (i < 2) {
-        const swapBtn = document.createElement('button');
-        swapBtn.type = 'button';
-        swapBtn.className = 'picker-swap';
-        swapBtn.textContent = i === 0 ? 'Swap' : 'Swap';
-        swapBtn.setAttribute('aria-label', i === 0 ? 'Swap with second phone' : 'Swap with first phone');
-        swapBtn.addEventListener('click', () => {
-          const selects = pickerContainer.querySelectorAll('.picker-select');
-          const val0 = selects[0].value;
-          const val1 = selects[1].value;
-          if (val0 && val1) {
-            selects[0].value = val1;
-            selects[1].value = val0;
-            const newIds = Array.from(selects).map(s => s.value).filter(v => v);
-            updateUrl(newIds);
-            renderTable(newIds);
-            renderSizeComparison(newIds);
-          }
-        });
-        slot.appendChild(swapBtn);
-      }
-
-      if (selectedIds[i]) {
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'picker-remove';
-        removeBtn.innerHTML = 'x';
-        removeBtn.setAttribute('aria-label', 'Remove this phone');
-        removeBtn.addEventListener('click', () => {
-          const selects = pickerContainer.querySelectorAll('.picker-select');
-          const newIds = Array.from(selects).map(s => s.value).filter(v => v && v !== selectedIds[i]);
-          updateUrl(newIds);
-          renderTable(newIds);
-          renderSizeComparison(newIds);
-        });
-        slot.appendChild(removeBtn);
-      }
-
-      pickerContainer.appendChild(slot);
-    }
-  }
-
-  function renderTable(selectedIds) {
-    const phones = selectedIds.map(id => PHONES.find(p => p.id === id)).filter(Boolean);
-
-    if (phones.length < 2) {
-      tableWrapper.innerHTML = `
-        <div class="compare-empty-state">
-          <h2>Select phones to compare</h2>
-          <p>Use the dropdowns above to choose at least 2 phones.</p>
-          ${selectedIds.some(id => !PHONES.some(p => p.id === id)) ? '<p class="compare-warning">One or more selected phones not found.</p>' : ''}
-        </div>
-      `;
-      return;
-    }
-
-    const specGroups = buildSpecRows(phones);
-
-    if (specGroups.length === 0) {
-      tableWrapper.innerHTML = '<p class="compare-empty-state">No comparable specs available for selected phones.</p>';
-      return;
-    }
-
-    let showDifferencesOnly = false;
-
-    function buildTableHtml(filterDiffs) {
-      let html = `
-        <div class="compare-table-container">
-          <div class="compare-table-header">
-            <div class="compare-table-header-cell"></div>
-            ${phones.map(p => `
-              <div class="compare-table-header-cell" data-brand="${p.brand}">
-        <img src="img/${p.id}.svg" alt="" class="compare-header-img" aria-hidden="true">
-        ${p.name}
-      </div>
-            `).join('')}
+      cardsHtml += `
+        <div class="cmp-card" data-id="${p.id}">
+          ${removeBtn}
+          <div class="cmp-card-media">
+            <img src="img/${p.id}.svg" alt="${p.name}" class="cmp-card-img" onerror="this.onerror=null;this.src='img/iphone.svg'">
           </div>
-          <div class="compare-table-controls">
-            <label class="compare-toggle">
-              <input type="checkbox" id="show-diff-toggle" ${filterDiffs ? 'checked' : ''}>
-              <span>Show only differences</span>
-            </label>
+          <div class="cmp-card-swatches">${swatchesHtml}</div>
+          <h2 class="cmp-card-name">${p.name}</h2>
+          <div class="cmp-card-price">${priceText}</div>
+          <div class="cmp-select-wrapper">
+            <select class="cmp-select cmp-model-select" data-idx="${idx}" aria-label="Select iPhone model for column ${idx + 1}">
+              <option value="">Change model…</option>
+              ${PHONES.map(opt => `<option value="${opt.id}" ${opt.id === p.id ? 'selected' : ''}>${opt.name} (${opt.year})</option>`).join('')}
+            </select>
           </div>
-          <div class="compare-table-scroll">
-            <table class="compare-table">
-              <thead>
-                <tr>
-                  <th class="spec-label sticky-col">Specification</th>
-                  ${phones.map(p => `
-                    <th class="spec-value sticky-col" data-brand="${p.brand}">${p.name}</th>
-                  `).join('')}
-                </tr>
-              </thead>
-              <tbody>
-      `;
+          <a href="phones/${p.id}.html" class="cmp-card-link">View full specs →</a>
+        </div>`;
+    });
 
-      specGroups.forEach(group => {
-        html += `
-          <tr class="spec-row group-header">
-            <th class="spec-label sticky-col" colspan="${phones.length + 1}" style="background: var(--surface); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 2px solid var(--line);">${group.group}</th>
-          </tr>
-        `;
+    // Add slot card if under max
+    if (phones.length < MAX_PHONES) {
+      cardsHtml += `
+        <div class="cmp-card cmp-card-add">
+          <div class="cmp-add-icon">+</div>
+          <div class="cmp-add-label">Add iPhone</div>
+          <div class="cmp-add-desc">Compare up to 3 models side by side</div>
+          <div class="cmp-select-wrapper">
+            <select class="cmp-select cmp-add-select" aria-label="Add an iPhone to comparison">
+              <option value="">Choose a model…</option>
+              ${optionsHtml}
+            </select>
+          </div>
+        </div>`;
+    }
 
-        group.items.forEach(item => {
-          const allEmpty = item.values.every(v => v === '-' || v === 'TBA');
-          if (allEmpty) return;
-
-          const differs = item.values.length > 1 && new Set(item.values).size > 1;
-          if (filterDiffs && !differs) return;
-
-          let bestIdx = -1;
-          if (item.numeric) {
-            const nums = item.values.map(v => getNumericValue(v));
-            const valid = nums.map((n, i) => n !== null ? { val: n, idx: i } : null).filter(Boolean);
-            if (valid.length > 1) {
-              if (isLowerBetter(item.label)) {
-                bestIdx = valid.reduce((best, cur) => cur.val < best.val ? cur : best).idx;
-              } else {
-                bestIdx = valid.reduce((best, cur) => cur.val > best.val ? cur : best).idx;
-              }
-            }
-          }
-
-          html += `
-            <tr class="spec-row ${differs ? 'differs-row' : ''}">
-              <td class="spec-label sticky-col">${item.label}</td>
-              ${item.values.map((v, i) => {
-                const isBest = i === bestIdx;
-                const barHtml = (item.numeric && getNumericValue(v) !== null) ?
-                  `<div class="compare-bar" style="--bar-width: ${getBarWidth(item, phones)}%;"></div>` : '';
-                return `
-                  <td class="spec-value ${differs ? 'differs' : ''} ${isBest ? 'best' : ''}" data-brand="${phones[i].brand}">
-                    ${v}
-                    ${isBest ? '<span class="best-badge">Best</span>' : ''}
-                    ${barHtml}
-                  </td>
-                `;
-              }).join('')}
-            </tr>
-          `;
-        });
-      });
-
-      html += `
-              </tbody>
-            </table>
+    heroRoot.innerHTML = `
+      <section class="cmp-hero-section">
+        <div class="container">
+          <div class="cmp-hero-header">
+            <span class="cmp-eyebrow">Comparison</span>
+            <h1 class="cmp-hero-title">Compare iPhone models</h1>
+            <p class="cmp-hero-subtitle">Explore technical specifications, camera systems, chips, battery life, and materials side by side.</p>
+          </div>
+          <div class="cmp-showcase-grid" style="--cols:${cols}">
+            ${cardsHtml}
           </div>
         </div>
-      `;
+      </section>`;
 
-      return html;
-    }
+    // Bind change model selects
+    heroRoot.querySelectorAll('.cmp-model-select').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const newId = e.target.value;
+        if (!newId) return;
+        const newIds = [...ids];
+        newIds[idx] = newId;
+        pushIds(newIds);
+        refreshAll(newIds);
+      });
+    });
 
-    function getBarWidth(item, phones) {
-      const nums = item.values.map(v => getNumericValue(v)).filter(n => n !== null);
-      if (nums.length === 0) return 0;
-      const max = Math.max(...nums);
-      const val = getNumericValue(item.values[phones.indexOf(phones.find(p => true))]) || 0;
-      return max > 0 ? Math.max(5, (val / max) * 100) : 0;
-    }
-
-    function getBarWidthForValue(item, value) {
-      const nums = item.values.map(v => getNumericValue(v)).filter(n => n !== null);
-      if (nums.length === 0) return 0;
-      const max = Math.max(...nums);
-      const val = getNumericValue(value);
-      return max > 0 ? Math.max(5, (val / max) * 100) : 0;
-    }
-
-    tableWrapper.innerHTML = buildTableHtml(false);
-
-    const toggle = tableWrapper.querySelector('#show-diff-toggle');
-    if (toggle) {
-      toggle.addEventListener('change', e => {
-        showDifferencesOnly = e.target.checked;
-        tableWrapper.innerHTML = buildTableHtml(showDifferencesOnly);
-        const newToggle = tableWrapper.querySelector('#show-diff-toggle');
-        if (newToggle) newToggle.checked = showDifferencesOnly;
+    // Bind add model select
+    const addSel = heroRoot.querySelector('.cmp-add-select');
+    if (addSel) {
+      addSel.addEventListener('change', (e) => {
+        const newId = e.target.value;
+        if (!newId) return;
+        const newIds = [...ids, newId];
+        pushIds(newIds);
+        refreshAll(newIds);
       });
     }
 
-    // Animate compare bars
-    requestAnimationFrame(() => {
-      tableWrapper.querySelectorAll('.compare-bar').forEach(bar => {
-        const width = bar.style.getPropertyValue('--bar-width');
-        bar.style.setProperty('--bar-width', '0%');
-        requestAnimationFrame(() => {
-          bar.style.transition = 'transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1)';
-          bar.style.setProperty('--bar-width', width);
-        });
+    // Bind remove buttons
+    heroRoot.querySelectorAll('.cmp-card-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const newIds = ids.filter((_, i) => i !== idx);
+        pushIds(newIds);
+        refreshAll(newIds);
       });
     });
   }
 
-  // Size comparison rendering
-  function renderSizeComparison(selectedIds) {
-    const phones = selectedIds.map(id => PHONES.find(p => p.id === id)).filter(Boolean);
-
-    let sizeContainer = document.getElementById('size-comparison');
-    if (!sizeContainer) {
-      sizeContainer = document.createElement('section');
-      sizeContainer.id = 'size-comparison';
-      sizeContainer.className = 'section-band';
-      sizeContainer.style.background = 'var(--white)';
-      tableWrapper.parentElement.insertBefore(sizeContainer, tableWrapper);
-    }
-
+  /* ── 2. Render Quick Look Feature Summary ──────────── */
+  function renderQuickLook(phones) {
     if (phones.length < 2) {
-      sizeContainer.innerHTML = '';
+      quicklookRoot.innerHTML = '';
       return;
     }
 
-    const phoneData = phones.map(p => {
-      let h, w, d;
-      if (p.category === 'foldable' && p.dims_closed_mm) {
-        [w, h, d] = p.dims_closed_mm;
-      } else if (p.dims_mm) {
-        [w, h, d] = p.dims_mm;
-      } else {
-        return null;
-      }
-      return { phone: p, h, w, d };
-    }).filter(Boolean);
+    const cols = phones.length;
 
-    if (phoneData.length < 2) {
-      sizeContainer.innerHTML = '';
-      return;
-    }
+    const columnsHtml = phones.map(p => {
+      const displayDesc = p.display?.size
+        ? `${p.display.size}″ ${p.display.tech || 'OLED'}${p.display.refresh === 120 ? ' (120Hz ProMotion)' : ''}`
+        : 'Retina Display';
 
-    const maxHeightMm = Math.max(...phoneData.map(p => p.h));
-    const maxDisplayHeight = 360;
-    const scale = maxDisplayHeight / maxHeightMm;
+      const chipDesc = p.chip
+        ? `${p.chip}${p.process ? ` · ${p.process}` : ''}`
+        : 'Apple Silicon';
 
-    const phoneImagesHtml = phoneData.map(p => {
-      const displayH = Math.round(p.h * scale);
-      const displayW = Math.round(p.w * scale);
+      const cameraDesc = p.camera?.main
+        ? `${p.camera.main}MP Main${p.camera.tele ? ` · ${p.camera.tele_zoom || ''} Telephoto` : ''}${p.camera.ultrawide ? ' · Ultra Wide' : ''}`
+        : 'Advanced Camera';
+
+      const batteryDesc = p.battery_mah
+        ? `${p.battery_mah.toLocaleString()} mAh${p.charging_w ? ` · ${p.charging_w}W wired` : ''}`
+        : 'All-day battery';
+
+      const designDesc = p.weight_g
+        ? `${p.weight_g} g${p.build ? ` · ${p.build.split(';')[0]}` : ''}`
+        : 'Precision design';
 
       return `
-        <div class="size-phone" style="display: inline-block; vertical-align: bottom; margin: 0 1.5rem; text-align: center; opacity: 0; transform: scaleY(0); transform-origin: bottom; transition: opacity 400ms cubic-bezier(0.25, 0.1, 0.25, 1), transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1);" data-height="${displayH}">
-          <div class="size-image" style="height: ${displayH}px; width: ${displayW}px; display: inline-block;">
-            <img src="img/${p.phone.id}.svg" alt="${p.phone.name}" style="width: 100%; height: 100%; object-fit: contain;" aria-hidden="true">
+        <div class="cmp-ql-column">
+          <div class="cmp-ql-col-title">${p.name}</div>
+          <div class="cmp-ql-item">
+            <div class="cmp-ql-icon">📱</div>
+            <div class="cmp-ql-details">
+              <span class="cmp-ql-label">Display</span>
+              <span class="cmp-ql-val">${displayDesc}</span>
+            </div>
           </div>
-          <div class="size-label" style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--muted); line-height: 1.4; opacity: 0; transition: opacity 300ms cubic-bezier(0.25, 0.1, 0.25, 1) 200ms;">
-            <div style="font-weight: 600; color: var(--ink);">${p.phone.name}</div>
-            <div>${p.h} × ${p.w} × ${p.d} mm</div>
-            ${p.phone.category === 'foldable' ? '<div style="font-size: 0.7rem; opacity: 0.7;">(shown closed)</div>' : ''}
+          <div class="cmp-ql-item">
+            <div class="cmp-ql-icon">⚡</div>
+            <div class="cmp-ql-details">
+              <span class="cmp-ql-label">Processor</span>
+              <span class="cmp-ql-val">${chipDesc}</span>
+            </div>
           </div>
-        </div>
-      `;
+          <div class="cmp-ql-item">
+            <div class="cmp-ql-icon">📷</div>
+            <div class="cmp-ql-details">
+              <span class="cmp-ql-label">Camera</span>
+              <span class="cmp-ql-val">${cameraDesc}</span>
+            </div>
+          </div>
+          <div class="cmp-ql-item">
+            <div class="cmp-ql-icon">🔋</div>
+            <div class="cmp-ql-details">
+              <span class="cmp-ql-label">Battery</span>
+              <span class="cmp-ql-val">${batteryDesc}</span>
+            </div>
+          </div>
+          <div class="cmp-ql-item">
+            <div class="cmp-ql-icon">⚖️</div>
+            <div class="cmp-ql-details">
+              <span class="cmp-ql-label">Weight & Build</span>
+              <span class="cmp-ql-val">${designDesc}</span>
+            </div>
+          </div>
+        </div>`;
     }).join('');
 
-    sizeContainer.innerHTML = `
-      <div class="container" style="text-align: center;">
-        <h2 class="section-heading" style="margin-bottom: 2rem;">Size Comparison</h2>
-        <div class="size-comparison-row" style="display: flex; align-items: flex-end; justify-content: center; min-height: ${maxDisplayHeight + 80}px; padding: 1rem 0;">
-          ${phoneImagesHtml}
+    quicklookRoot.innerHTML = `
+      <section class="cmp-quicklook-section" id="cmp-overview">
+        <div class="container">
+          <h2 class="cmp-quicklook-title">Quick Look</h2>
+          <p class="cmp-quicklook-subtitle">Key highlights at a glance</p>
+          <div class="cmp-quicklook-grid" style="--cols:${cols}">
+            ${columnsHtml}
+          </div>
         </div>
-        <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">All phones shown at relative scale. Tallest phone = 360px.</p>
-      </div>
-    `;
+      </section>`;
+  }
 
-    requestAnimationFrame(() => {
-      sizeContainer.querySelectorAll('.size-phone').forEach((el, i) => {
-        setTimeout(() => {
-          el.style.opacity = '1';
-          el.style.transform = 'scaleY(1)';
-        }, i * 80);
-        const label = el.querySelector('.size-label');
-        if (label) {
-          setTimeout(() => { label.style.opacity = '1'; }, i * 80 + 300);
+  /* ── 3. Render Sticky Navigation & Difference Toggle ─ */
+  function renderStickyNav(groups, diffsOnly, diffCount) {
+    if (!groups.length) {
+      stickyNavRoot.innerHTML = '';
+      return;
+    }
+
+    const pills = groups.map(g =>
+      `<a href="#cmp-sec-${g.slug}" class="cmp-nav-pill" data-slug="${g.slug}">${g.group}</a>`
+    ).join('');
+
+    stickyNavRoot.innerHTML = `
+      <div class="cmp-sticky-bar" id="cmp-sticky-bar">
+        <div class="container">
+          <div class="cmp-sticky-inner">
+            <nav class="cmp-nav-pills" aria-label="Spec sections">
+              <a href="#cmp-overview" class="cmp-nav-pill active" data-slug="overview">Overview</a>
+              ${pills}
+            </nav>
+            <div class="cmp-diff-control">
+              <label class="cmp-toggle-label" for="cmp-diff-checkbox">
+                <span class="cmp-toggle-switch">
+                  <input type="checkbox" id="cmp-diff-checkbox" ${diffsOnly ? 'checked' : ''}>
+                  <span class="cmp-toggle-slider"></span>
+                </span>
+                Show differences only
+              </label>
+              ${diffsOnly ? `<span class="cmp-diff-badge">${diffCount} differences</span>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    // Bind difference toggle
+    const toggle = document.getElementById('cmp-diff-checkbox');
+    if (toggle) {
+      toggle.addEventListener('change', () => {
+        applyDifferenceFilter(toggle.checked);
+      });
+    }
+
+    // Scroll spy for sticky nav
+    setupScrollSpy();
+  }
+
+  /* ── 4. Render Floating Sticky Column Headers ──────── */
+  function renderStickyColumns(phones) {
+    if (phones.length < 2) {
+      stickyColsRoot.innerHTML = '';
+      return;
+    }
+
+    const colsHtml = phones.map(p => `
+      <div class="cmp-sc-col">
+        <span class="cmp-sc-name" title="${p.name}">${p.name}</span>
+        <span class="cmp-sc-price">${formatPrice(p.price)}</span>
+      </div>`).join('');
+
+    stickyColsRoot.innerHTML = `
+      <div class="cmp-sticky-columns" id="cmp-sticky-columns">
+        <div class="container">
+          <div class="cmp-sticky-columns-inner" style="--cols:${phones.length}">
+            <div class="cmp-sc-label">Specification</div>
+            ${colsHtml}
+          </div>
+        </div>
+      </div>`;
+
+    setupStickyWatcher();
+  }
+
+  /* ── 5. Render Technical Spec Table ────────────────── */
+  function renderTable(phones, groups) {
+    if (phones.length < 2) {
+      renderEmptyState();
+      return;
+    }
+
+    const cols = phones.length;
+
+    let groupsHtml = '';
+
+    groups.forEach(group => {
+      let rowsHtml = '';
+
+      group.items.forEach(item => {
+        const plainVals = item.values.map(v => String(v).replace(/<[^>]+>/g, '').trim());
+        const hasDiff = new Set(plainVals).size > 1;
+
+        // Numeric comparison & winner calculation
+        let bestIdx = -1;
+        if (item.numeric) {
+          const nums = item.values.map(numericVal);
+          const valid = nums.filter(n => n !== null);
+          if (valid.length > 1) {
+            const target = lowerIsBetter(item.label) ? Math.min(...valid) : Math.max(...valid);
+            const idx = nums.indexOf(target);
+            if (nums.filter(n => n === target).length === 1) {
+              bestIdx = idx;
+            }
+          }
         }
+
+        const cellsHtml = item.values.map((val, idx) => {
+          const isWinner = idx === bestIdx;
+          const pct = item.numeric ? calcBarPct(item.values, idx) : 0;
+          const barEl = pct > 0 ? `<div class="cmp-bar-fill" data-pct="${pct.toFixed(1)}"></div>` : '';
+          const badgeEl = isWinner ? `<span class="cmp-win-badge">Best</span>` : '';
+
+          return `
+            <div class="cmp-val-cell ${isWinner ? 'is-winner' : ''}">
+              ${barEl}
+              <div class="cmp-cell-content">
+                <span class="cmp-cell-val">${val}</span>
+                ${badgeEl}
+              </div>
+            </div>`;
+        }).join('');
+
+        rowsHtml += `
+          <div class="cmp-row ${hasDiff ? 'differs' : 'identical'}" data-diff="${hasDiff ? '1' : '0'}">
+            <div class="cmp-label-cell">${item.label}</div>
+            ${cellsHtml}
+          </div>`;
+      });
+
+      if (!rowsHtml) return;
+
+      groupsHtml += `
+        <div class="cmp-group" id="cmp-sec-${group.slug}">
+          <div class="cmp-group-header">
+            <span class="cmp-group-title">${group.group}</span>
+          </div>
+          ${rowsHtml}
+        </div>`;
+    });
+
+    tableRoot.innerHTML = `
+      <section class="cmp-table-section">
+        <div class="container">
+          <div class="cmp-table-wrap">
+            <div class="cmp-table-scroll">
+              <div class="cmp-table-grid" style="--cols:${cols}">
+                ${groupsHtml}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>`;
+
+    // Animate visual bars
+    requestAnimationFrame(() => {
+      tableRoot.querySelectorAll('.cmp-bar-fill').forEach(bar => {
+        bar.style.width = bar.dataset.pct + '%';
       });
     });
   }
 
-  function getCameraCount(phone) {
-    if (!phone.camera) return 0;
-    let count = 0;
-    if (phone.camera.main) count++;
-    if (phone.camera.ultrawide) count++;
-    if (phone.camera.tele) count++;
-    if (phone.camera.periscope_tele) count++;
-    return count;
+  /* ── 6. Differences Filtering ──────────────────────── */
+  function applyDifferenceFilter(diffsOnly) {
+    const rows = tableRoot.querySelectorAll('.cmp-row');
+    let diffCount = 0;
+
+    rows.forEach(r => {
+      const isDiff = r.dataset.diff === '1';
+      if (isDiff) diffCount++;
+      if (diffsOnly && !isDiff) {
+        r.classList.add('hidden-diff');
+      } else {
+        r.classList.remove('hidden-diff');
+      }
+    });
+
+    // Update diff badge in subnav
+    const badge = stickyNavRoot.querySelector('.cmp-diff-badge');
+    if (diffsOnly) {
+      if (!badge) {
+        const ctrl = stickyNavRoot.querySelector('.cmp-diff-control');
+        if (ctrl) {
+          const b = document.createElement('span');
+          b.className = 'cmp-diff-badge';
+          b.textContent = `${diffCount} differences`;
+          ctrl.appendChild(b);
+        }
+      } else {
+        badge.textContent = `${diffCount} differences`;
+      }
+    } else if (badge) {
+      badge.remove();
+    }
   }
 
+  /* ── 7. Render Empty State & Popular Matchups ───────── */
+  function renderEmptyState() {
+    quicklookRoot.innerHTML = '';
+    stickyNavRoot.innerHTML = '';
+    stickyColsRoot.innerHTML = '';
+
+    tableRoot.innerHTML = `
+      <section class="cmp-table-section">
+        <div class="container">
+          <div class="cmp-table-wrap">
+            <div class="cmp-empty">
+              <div class="cmp-empty-icon">⚖️</div>
+              <h2 class="cmp-empty-title">Select models to compare</h2>
+              <p class="cmp-empty-text">Choose at least two iPhone models above to view a detailed side-by-side spec comparison, or click one of these popular comparisons:</p>
+              <div class="cmp-matchup-heading">Popular Comparisons</div>
+              <div class="cmp-matchups">
+                <button type="button" class="cmp-matchup-btn" data-ids="iphone-16-pro,iphone-16">iPhone 16 Pro vs iPhone 16</button>
+                <button type="button" class="cmp-matchup-btn" data-ids="iphone-16-pro,iphone-15-pro">iPhone 16 Pro vs iPhone 15 Pro</button>
+                <button type="button" class="cmp-matchup-btn" data-ids="iphone-16-pro-max,iphone-17-pro-max">iPhone 16 Pro Max vs iPhone 17 Pro Max</button>
+                <button type="button" class="cmp-matchup-btn" data-ids="iphone-17,iphone-16">iPhone 17 vs iPhone 16</button>
+                <button type="button" class="cmp-matchup-btn" data-ids="iphone-air,iphone-17-pro">iPhone Air vs iPhone 17 Pro</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>`;
+
+    tableRoot.querySelectorAll('.cmp-matchup-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const newIds = btn.dataset.ids.split(',');
+        pushIds(newIds);
+        refreshAll(newIds);
+      });
+    });
+  }
+
+  /* ── 8. Sticky Watcher & Header Scroll ─────────────── */
+  function setupStickyWatcher() {
+    const heroEl = document.querySelector('.cmp-hero-section');
+    const stickyCols = document.getElementById('cmp-sticky-columns');
+    if (!heroEl || !stickyCols) return;
+
+    window.addEventListener('scroll', () => {
+      const heroBottom = heroEl.getBoundingClientRect().bottom;
+      // Show pinned header when hero cards scroll above view
+      stickyCols.classList.toggle('is-pinned', heroBottom < 52);
+    }, { passive: true });
+  }
+
+  function setupScrollSpy() {
+    const pills = stickyNavRoot.querySelectorAll('.cmp-nav-pill');
+    const sections = [
+      document.getElementById('cmp-overview'),
+      ...tableRoot.querySelectorAll('.cmp-group')
+    ].filter(Boolean);
+
+    window.addEventListener('scroll', () => {
+      const scrollPos = window.scrollY + 120;
+      let currentSlug = 'overview';
+
+      sections.forEach(sec => {
+        if (sec.offsetTop <= scrollPos) {
+          currentSlug = sec.id.replace('cmp-sec-', '').replace('cmp-', '');
+        }
+      });
+
+      pills.forEach(p => {
+        p.classList.toggle('active', p.dataset.slug === currentSlug);
+      });
+    }, { passive: true });
+  }
+
+  function initHeaderScroll() {
+    const hdr = document.getElementById('site-header');
+    if (!hdr) return;
+    window.addEventListener('scroll', () => {
+      hdr.classList.toggle('scrolled', window.scrollY > 8);
+    }, { passive: true });
+  }
+
+  /* ── 9. Main Refresh Coordinator ───────────────────── */
+  function refreshAll(ids) {
+    const phones = ids.map(id => PHONES.find(p => p.id === id)).filter(Boolean);
+    const groups = phones.length >= 2 ? buildGroups(phones) : [];
+
+    renderHero(phones, ids);
+
+    if (phones.length >= 2) {
+      renderQuickLook(phones);
+      renderStickyNav(groups, false, 0);
+      renderStickyColumns(phones);
+      renderTable(phones, groups);
+    } else {
+      renderEmptyState();
+    }
+  }
+
+  /* ── Init ──────────────────────────────────────────── */
   function init() {
-    const selectedIds = getSelectedIds();
-    renderPickers(selectedIds);
-    renderTable(selectedIds);
-    renderSizeComparison(selectedIds);
+    initHeaderScroll();
+    const ids = getSelectedIds();
+    refreshAll(ids);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', init)
+    : init();
 })();

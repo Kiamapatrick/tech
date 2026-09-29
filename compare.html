@@ -3,29 +3,884 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Compare - goatedTech</title>
+  <title>Compare iPhone Models — goatedTech</title>
+  <meta name="description" content="Compare iPhone models side by side. Display, chip, camera, battery, dimensions, and complete technical specifications.">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ============================================================
+       goatedTech — Apple-grade Compare Page Styles
+       ============================================================ */
+
+    /* ── Hero / Showcase ──────────────────────────────── */
+    .cmp-hero-section {
+      background: var(--white);
+      padding: 3.5rem 0 2rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cmp-hero-header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 3rem;
+    }
+
+    .cmp-eyebrow {
+      display: inline-block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .cmp-hero-title {
+      font-size: clamp(2.25rem, 5vw, 3.25rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 0.75rem;
+    }
+
+    .cmp-hero-subtitle {
+      font-size: 1.0625rem;
+      color: var(--secondary);
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+    }
+
+    /* Showcase grid of compared models */
+    .cmp-showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+      gap: 1.5rem;
+      align-items: stretch;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    /* Single phone card */
+    .cmp-card {
+      background: var(--off-white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem 1.75rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      transition:
+        transform var(--dur-mid) var(--ease),
+        box-shadow var(--dur-mid) var(--ease),
+        border-color var(--dur-fast) var(--ease);
+    }
+
+    .cmp-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+      border-color: rgba(0,0,0,0.18);
+    }
+
+    /* Remove slot button */
+    .cmp-card-remove {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 1.75rem;
+      height: 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-2);
+      color: var(--muted);
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+    }
+
+    .cmp-card-remove:hover {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    /* Device image */
+    .cmp-card-media {
+      width: 100%;
+      height: 210px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .cmp-card-img {
+      max-height: 200px;
+      max-width: 130px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.12));
+      transition: transform var(--dur-mid) var(--ease);
+    }
+
+    .cmp-card:hover .cmp-card-img {
+      transform: scale(1.03);
+    }
+
+    /* Finish color swatches */
+    .cmp-card-swatches {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      min-height: 18px;
+      flex-wrap: wrap;
+    }
+
+    .cmp-swatch-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.08);
+      position: relative;
+      cursor: default;
+      transition: transform var(--dur-fast) var(--ease);
+    }
+
+    .cmp-swatch-dot:hover {
+      transform: scale(1.25);
+      z-index: 2;
+    }
+
+    /* Phone metadata */
+    .cmp-card-name {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 0.35rem;
+    }
+
+    .cmp-card-price {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Model selector dropdown */
+    .cmp-select-wrapper {
+      width: 100%;
+      max-width: 260px;
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .cmp-select {
+      width: 100%;
+      padding: 0.75rem 2.25rem 0.75rem 1.1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--ink);
+      background-color: var(--white);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius-md);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.85rem center;
+      cursor: pointer;
+      transition:
+        border-color var(--dur-fast) var(--ease),
+        box-shadow var(--dur-fast) var(--ease);
+    }
+
+    .cmp-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-light);
+    }
+
+    .cmp-card-link {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.25rem;
+      transition: opacity var(--dur-fast) var(--ease);
+    }
+
+    .cmp-card-link:hover {
+      opacity: 0.7;
+    }
+
+    /* Add phone card (slot 3 when only 2 selected) */
+    .cmp-card.cmp-card-add {
+      background: transparent;
+      border: 2px dashed var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 420px;
+      gap: 1rem;
+    }
+
+    .cmp-card.cmp-card-add:hover {
+      border-color: var(--accent);
+      background: rgba(0, 113, 227, 0.02);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .cmp-add-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 400;
+      transition: background-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+    }
+
+    .cmp-card-add:hover .cmp-add-icon {
+      background: var(--accent-light);
+      transform: scale(1.08);
+    }
+
+    .cmp-add-label {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .cmp-add-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      max-width: 200px;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── Quick Look Feature Summary ───────────────────── */
+    .cmp-quicklook-section {
+      background: var(--off-white);
+      padding: 3rem 0 3.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cmp-quicklook-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+    }
+
+    .cmp-quicklook-subtitle {
+      text-align: center;
+      font-size: 0.9375rem;
+      color: var(--muted);
+      margin-bottom: 2.25rem;
+    }
+
+    .cmp-quicklook-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+      gap: 1.5rem;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    .cmp-ql-column {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+
+    .cmp-ql-col-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.75rem;
+      text-align: center;
+    }
+
+    .cmp-ql-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+    }
+
+    .cmp-ql-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-xs);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+      color: var(--ink);
+    }
+
+    .cmp-ql-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .cmp-ql-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .cmp-ql-val {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--ink);
+      line-height: 1.35;
+    }
+
+    /* ── Sticky Subnav & Controls ─────────────────────── */
+    .cmp-sticky-bar {
+      position: sticky;
+      top: 52px;
+      z-index: 60;
+      background: rgba(251, 251, 253, 0.92);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cmp-sticky-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding: 0.6rem 0;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    .cmp-nav-pills {
+      display: flex;
+      gap: 0.35rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .cmp-nav-pills::-webkit-scrollbar { display: none; }
+
+    .cmp-nav-pill {
+      padding: 0.4rem 0.85rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--secondary);
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+      transition:
+        background-color var(--dur-fast) var(--ease),
+        color var(--dur-fast) var(--ease);
+    }
+
+    .cmp-nav-pill:hover {
+      background: var(--surface-2);
+      color: var(--ink);
+    }
+
+    .cmp-nav-pill.active {
+      background: var(--ink);
+      color: var(--white);
+      font-weight: 600;
+    }
+
+    /* Differences toggle switch */
+    .cmp-diff-control {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .cmp-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--ink);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .cmp-toggle-switch {
+      position: relative;
+      width: 40px;
+      height: 24px;
+      display: inline-block;
+    }
+
+    .cmp-toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .cmp-toggle-slider {
+      position: absolute;
+      inset: 0;
+      background-color: var(--line);
+      border-radius: var(--radius-pill);
+      transition: background-color var(--dur-mid) var(--ease);
+    }
+
+    .cmp-toggle-slider::before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--white);
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.22);
+      transition: transform var(--dur-mid) var(--ease);
+    }
+
+    .cmp-toggle-switch input:checked + .cmp-toggle-slider {
+      background-color: var(--accent);
+    }
+
+    .cmp-toggle-switch input:checked + .cmp-toggle-slider::before {
+      transform: translateX(16px);
+    }
+
+    .cmp-diff-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-pill);
+    }
+
+    /* ── Floating Sticky Column Headers ──────────────── */
+    .cmp-sticky-columns {
+      position: sticky;
+      top: calc(52px + 49px);
+      z-index: 55;
+      background: rgba(245, 245, 247, 0.95);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 2px solid var(--line);
+      display: none;
+    }
+
+    .cmp-sticky-columns.is-pinned {
+      display: block;
+    }
+
+    .cmp-sticky-columns-inner {
+      display: grid;
+      grid-template-columns: 210px repeat(var(--cols, 2), minmax(0, 1fr));
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    .cmp-sc-label {
+      padding: 0.75rem 1.25rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      border-right: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+    }
+
+    .cmp-sc-col {
+      padding: 0.75rem 1.25rem;
+      border-right: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .cmp-sc-col:last-child {
+      border-right: none;
+    }
+
+    .cmp-sc-name {
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cmp-sc-price {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ── Spec Comparison Table ───────────────────────── */
+    .cmp-table-section {
+      background: var(--off-white);
+      padding: 2.5rem 0 6rem;
+    }
+
+    .cmp-table-wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    }
+
+    .cmp-table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .cmp-table-grid {
+      min-width: calc(210px + var(--cols, 2) * 230px);
+    }
+
+    /* Group Header */
+    .cmp-group-header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--line);
+      border-top: 1px solid var(--line);
+      padding: 0.75rem 1.25rem;
+    }
+
+    .cmp-table-grid > .cmp-group:first-child .cmp-group-header {
+      border-top: none;
+    }
+
+    .cmp-group-title {
+      font-size: 0.78125rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Spec Row */
+    .cmp-row {
+      display: grid;
+      grid-template-columns: 210px repeat(var(--cols, 2), minmax(0, 1fr));
+      border-bottom: 1px solid var(--line);
+      transition: background-color var(--dur-fast) var(--ease);
+      background: var(--white);
+    }
+
+    .cmp-row:last-child {
+      border-bottom: none;
+    }
+
+    .cmp-row:hover {
+      background-color: #fafafc;
+    }
+
+    .cmp-row.differs {
+      background-color: var(--white);
+    }
+
+    .cmp-row.differs .cmp-cell-val {
+      font-weight: 600;
+    }
+
+    .cmp-row.hidden-diff {
+      display: none;
+    }
+
+    .cmp-label-cell {
+      padding: 0.9rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--secondary);
+      background: var(--surface);
+      border-right: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      position: sticky;
+      left: 0;
+      z-index: 2;
+    }
+
+    .cmp-val-cell {
+      padding: 0.9rem 1.25rem;
+      font-size: 0.875rem;
+      color: var(--ink);
+      border-right: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+
+    .cmp-val-cell:last-child {
+      border-right: none;
+    }
+
+    /* Relative visual bar */
+    .cmp-bar-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background: rgba(0, 113, 227, 0.07);
+      border-right: 2px solid rgba(0, 113, 227, 0.3);
+      width: 0;
+      transition: width 650ms cubic-bezier(0.25, 0.1, 0.25, 1);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .cmp-cell-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .cmp-cell-val {
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+    }
+
+    /* Best badge */
+    .cmp-win-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.12rem 0.5rem;
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      background: var(--accent-light);
+      border-radius: var(--radius-pill);
+      flex-shrink: 0;
+    }
+
+    /* Swatch pill in Misc */
+    .cmp-color-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .cmp-color-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+      color: var(--ink);
+    }
+
+    .cmp-color-pill-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+
+    /* ── Empty State & Matchups ───────────────────────── */
+    .cmp-empty {
+      text-align: center;
+      padding: 5rem 1.5rem;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .cmp-empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1.25rem;
+      opacity: 0.35;
+    }
+
+    .cmp-empty-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .cmp-empty-text {
+      font-size: 0.9375rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+
+    .cmp-matchup-heading {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--secondary);
+      margin-bottom: 1rem;
+    }
+
+    .cmp-matchups {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      justify-content: center;
+    }
+
+    .cmp-matchup-btn {
+      padding: 0.6rem 1.1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--white);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition:
+        border-color var(--dur-fast) var(--ease),
+        background-color var(--dur-fast) var(--ease),
+        transform var(--dur-fast) var(--ease);
+    }
+
+    .cmp-matchup-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      transform: translateY(-1px);
+    }
+
+    /* ── Responsive adjustments ───────────────────────── */
+    @media (max-width: 860px) {
+      .cmp-showcase-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cmp-quicklook-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cmp-sticky-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+      }
+
+      .cmp-diff-control {
+        justify-content: flex-end;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .cmp-hero-section {
+        padding: 2.5rem 0 1.5rem;
+      }
+
+      .cmp-hero-title {
+        font-size: 1.85rem;
+      }
+
+      .cmp-card {
+        padding: 1.5rem 1rem;
+      }
+
+      .cmp-card-media {
+        height: 170px;
+      }
+
+      .cmp-card-img {
+        max-height: 160px;
+      }
+
+      .cmp-table-grid {
+        min-width: calc(130px + var(--cols, 2) * 170px);
+      }
+
+      .cmp-label-cell {
+        font-size: 0.75rem;
+        padding: 0.75rem 0.85rem;
+      }
+
+      .cmp-val-cell {
+        font-size: 0.8125rem;
+        padding: 0.75rem 0.85rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <header class="site-header">
+  <header class="site-header" id="site-header">
     <div class="container">
       <a href="./" class="site-name">goatedTech</a>
     </div>
   </header>
 
-  <main>
-    <section class="section-band" style="background: var(--white);">
-      <div class="container">
-        <h1 class="section-heading" style="text-align: center; margin-bottom: 2rem;">Compare Phones</h1>
-        <div class="compare-picker" id="compare-picker"></div>
-      </div>
-    </section>
+  <main id="compare-main">
+    <!-- Hero / Showcase root -->
+    <div id="cmp-hero-root"></div>
 
-    <section class="section-band" style="background: var(--surface);">
-      <div class="container">
-        <div id="compare-table-wrapper"></div>
-      </div>
-    </section>
+    <!-- Quick Look Highlights root -->
+    <div id="cmp-quicklook-root"></div>
+
+    <!-- Sticky Navigation Bar -->
+    <div id="cmp-sticky-nav-root"></div>
+
+    <!-- Floating Sticky Column Header -->
+    <div id="cmp-sticky-columns-root"></div>
+
+    <!-- Specifications Table root -->
+    <div id="cmp-table-root"></div>
   </main>
 
   <script defer src="js/phones-data.js"></script>
